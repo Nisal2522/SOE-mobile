@@ -2207,6 +2207,11 @@ button {
 
 .journal-card.is-expanded .journal-card__body {
   padding: 0 12px 12px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .journal-card__header {
@@ -2363,12 +2368,27 @@ button {
 
 .journal-card__client-line {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 5px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   font-size: 11px;
   font-weight: 500;
   color: var(--muted);
+  text-align: center;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.journal-card__client-line > span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .journal-card__hrs {
@@ -2391,37 +2411,27 @@ button {
 
 .journal-card__details {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin-top: 0;
   padding-top: 12px;
   border-top: none;
   text-align: center;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 4px;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .journal-card.is-expanded .journal-card__details {
-  max-height: 200px;
+  max-height: none;
   overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
+  overflow-y: visible;
   min-height: 0;
-  padding-right: 2px;
-}
-
-.journal-card.is-expanded .journal-card__details::-webkit-scrollbar {
-  width: 4px;
-}
-
-.journal-card.is-expanded .journal-card__details::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--muted) 45%, transparent);
-}
-
-.journal-card.is-expanded .journal-card__details::-webkit-scrollbar-track {
-  background: transparent;
+  padding-right: 0;
+  width: 100%;
 }
 
 .journal-card.is-collapsed .journal-card__details {
@@ -2436,10 +2446,17 @@ button {
 
 .journal-card__ref {
   margin-top: 4px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   font-size: 12px;
   font-weight: 700;
   color: var(--ink);
   letter-spacing: -0.01em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .journal-card__meta {
@@ -2447,10 +2464,25 @@ button {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: flex-start;
   gap: 4px 6px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   font-size: 11px;
   font-weight: 500;
   color: var(--muted);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.journal-card__meta > span {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .journal-card__dot {
@@ -2459,17 +2491,30 @@ button {
 
 .journal-card__dept {
   margin-top: 4px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   font-size: 12px;
   font-weight: 600;
   color: var(--ink);
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .journal-card__desc {
   margin: 8px 0 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   font-size: 12px;
   line-height: 1.45;
   color: var(--muted);
-  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .journal-card__desc.is-expanded {
@@ -2479,6 +2524,9 @@ button {
 .journal-card__note {
   display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   margin-top: 10px;
   text-align: center;
 }
@@ -4706,20 +4754,25 @@ button {
   background: var(--card);
   border: 1px solid color-mix(in srgb, var(--ink) 7%, transparent);
   border-radius: 16px;
-  padding: 12px 8px 8px;
+  padding: 10px 6px 6px;
   box-shadow: 0 8px 20px rgba(27, 30, 66, 0.05);
+  overflow: hidden;
 }
 
 .perf-trend__scroll {
-  overflow-x: auto;
-  margin: 0 -2px;
-  padding: 0 2px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .perf-trend__svg {
-  width: 560px;
-  max-width: none;
-  height: 220px;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  min-height: 180px;
   display: block;
 }
 
@@ -4731,35 +4784,45 @@ button {
 
 .perf-trend__axis {
   fill: var(--muted);
-  font-size: 10px;
   font-weight: 600;
+}
+
+.perf-trend__month {
+  letter-spacing: -0.03em;
 }
 
 .perf-trend__target {
   stroke: #9aa3b5;
   stroke-dasharray: 4 4;
-  stroke-width: 1.5;
-}
-
-.perf-trend__target-badge {
-  fill: #eef1f6;
+  stroke-width: 1.25;
 }
 
 .perf-trend__target-text {
   fill: #6b7280;
-  font-size: 8px;
   font-weight: 700;
 }
 
 .perf-trend__line {
   stroke: #5b7cfa;
-  stroke-width: 2.5;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
 }
 
 .perf-trend__value {
   fill: var(--ink);
-  font-size: 9px;
   font-weight: 700;
+}
+
+/* Fallback only on very narrow devices if labels would crush */
+@media (max-width: 320px) {
+  .perf-trend__scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .perf-trend__svg {
+    min-width: 300px;
+  }
 }
 
 [data-theme="dark"] .performance-view__avatar,
@@ -4775,10 +4838,6 @@ button {
 
 [data-theme="dark"] .performance-view__hero {
   background: linear-gradient(135deg, #15182f 0%, #24304f 100%);
-}
-
-[data-theme="dark"] .perf-trend__target-badge {
-  fill: rgba(255, 255, 255, 0.08);
 }
 
 [data-theme="dark"] .perf-trend__target-text {

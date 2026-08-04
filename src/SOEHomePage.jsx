@@ -269,10 +269,10 @@ const PERFORMANCE_DATA = {
     { month: 'Jun', value: 0, level: 'low' },
     { month: 'Jul', value: 101.49, level: 'exceptional' },
     { month: 'Aug', value: 25.23, level: 'low' },
-    { month: 'Sep', value: null, level: null },
-    { month: 'Oct', value: null, level: null },
-    { month: 'Nov', value: null, level: null },
-    { month: 'Dec', value: null, level: null },
+    { month: 'Sep', value: 0, level: 'low' },
+    { month: 'Oct', value: 0, level: 'low' },
+    { month: 'Nov', value: 0, level: 'low' },
+    { month: 'Dec', value: 0, level: 'low' },
   ],
 };
 
@@ -385,21 +385,33 @@ function PerformanceDonut({ color, gradient, value = 100, size = 112, id = 'donu
 }
 
 function PerformanceTrendChart({ trends }) {
-  const width = 560;
-  const height = 220;
-  const pad = { top: 28, right: 18, bottom: 36, left: 36 };
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const byMonth = Object.fromEntries(
+    (trends || []).map((item) => [item.month, item])
+  );
+  const series = MONTHS.map((month) => {
+    const item = byMonth[month];
+    const value = item?.value == null ? 0 : Number(item.value);
+    return {
+      month,
+      value,
+      level: item?.level || 'low',
+    };
+  });
+
+  // Compact viewBox sized for phone widths so all 12 months stay on-screen.
+  const width = 340;
+  const height = 200;
+  const pad = { top: 20, right: 10, bottom: 26, left: 24 };
   const plotW = width - pad.left - pad.right;
   const plotH = height - pad.top - pad.bottom;
   const yMax = 200;
   const yTicks = [0, 40, 80, 120, 160, 200];
-  const points = trends
-    .map((item, index) => {
-      if (item.value == null) return null;
-      const x = pad.left + (index / (trends.length - 1)) * plotW;
-      const y = pad.top + plotH - (item.value / yMax) * plotH;
-      return { ...item, x, y, index };
-    })
-    .filter(Boolean);
+  const points = series.map((item, index) => {
+    const x = pad.left + (index / (series.length - 1)) * plotW;
+    const y = pad.top + plotH - (item.value / yMax) * plotH;
+    return { ...item, x, y, index };
+  });
 
   const path = points.map((point, index) => (
     `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`
@@ -408,12 +420,13 @@ function PerformanceTrendChart({ trends }) {
   const targetY = pad.top + plotH - (100 / yMax) * plotH;
 
   return (
-    <div className="perf-trend__scroll scroll-hide">
+    <div className="perf-trend__scroll">
       <svg
         className="perf-trend__svg"
         viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="xMidYMid meet"
         role="img"
-        aria-label="Performance trends chart"
+        aria-label="Performance trends chart for January through December"
       >
         {yTicks.map((tick) => {
           const y = pad.top + plotH - (tick / yMax) * plotH;
@@ -426,7 +439,13 @@ function PerformanceTrendChart({ trends }) {
                 y2={y}
                 className="perf-trend__grid"
               />
-              <text x={pad.left - 8} y={y + 3} textAnchor="end" className="perf-trend__axis">
+              <text
+                x={pad.left - 4}
+                y={y + 2.5}
+                textAnchor="end"
+                className="perf-trend__axis"
+                fontSize="7"
+              >
                 {tick}
               </text>
             </g>
@@ -436,23 +455,16 @@ function PerformanceTrendChart({ trends }) {
         <line
           x1={pad.left}
           y1={targetY}
-          x2={width - pad.right - 72}
+          x2={width - pad.right}
           y2={targetY}
           className="perf-trend__target"
         />
-        <rect
-          x={width - pad.right - 70}
-          y={targetY - 10}
-          width={68}
-          height={18}
-          rx={4}
-          className="perf-trend__target-badge"
-        />
         <text
-          x={width - pad.right - 36}
-          y={targetY + 3}
-          textAnchor="middle"
+          x={width - pad.right}
+          y={targetY - 4}
+          textAnchor="end"
           className="perf-trend__target-text"
+          fontSize="6.5"
         >
           TARGET 100%
         </text>
@@ -463,33 +475,34 @@ function PerformanceTrendChart({ trends }) {
           const level = getPerformanceLevelMeta(point.level);
           return (
             <g key={point.month}>
-              <circle cx={point.x} cy={point.y} r={5} fill={level.color} />
-              <text
-                x={point.x}
-                y={point.y - 10}
-                textAnchor="middle"
-                className="perf-trend__value"
-              >
-                {point.value}%
-              </text>
+              <circle cx={point.x} cy={point.y} r={2.6} fill={level.color} />
+              {point.value > 0 && (
+                <text
+                  x={point.x}
+                  y={point.y - 6}
+                  textAnchor="middle"
+                  className="perf-trend__value"
+                  fontSize="6.5"
+                >
+                  {point.value}%
+                </text>
+              )}
             </g>
           );
         })}
 
-        {trends.map((item, index) => {
-          const x = pad.left + (index / (trends.length - 1)) * plotW;
-          return (
-            <text
-              key={item.month}
-              x={x}
-              y={height - 12}
-              textAnchor="middle"
-              className="perf-trend__axis"
-            >
-              {item.month}
-            </text>
-          );
-        })}
+        {points.map((point) => (
+          <text
+            key={`${point.month}-label`}
+            x={point.x}
+            y={height - 8}
+            textAnchor="middle"
+            className="perf-trend__axis perf-trend__month"
+            fontSize="6.5"
+          >
+            {point.month}
+          </text>
+        ))}
       </svg>
     </div>
   );
