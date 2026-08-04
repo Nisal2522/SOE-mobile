@@ -3928,8 +3928,9 @@ function HomeDashboard({ onSignOut, now }) {
         </div>
       ) : (
       <>
-      <div className="flex-1 overflow-y-auto scroll-hide px-5 pt-2 pb-28">
-        <div className="fade-up flex items-start justify-between mb-5 gap-3">
+      <div className="home-scroll scroll-hide">
+        <div className="home-scroll__stack">
+        <div className="fade-up flex items-start justify-between gap-3" style={{ marginBottom: 0 }}>
           <div className="min-w-0">
             <img
               src={darkMode ? logo : colorLogo}
@@ -3976,8 +3977,8 @@ function HomeDashboard({ onSignOut, now }) {
         </div>
 
         <div
-          className="fade-up fade-up-delay-1 glass-strong relative overflow-hidden mb-5"
-          style={{ borderRadius: 24, padding: '22px 20px 20px' }}
+          className="fade-up fade-up-delay-1 glass-strong relative overflow-hidden"
+          style={{ borderRadius: 24, padding: 'clamp(16px, 2.4vh, 22px) clamp(16px, 4vw, 20px)' }}
         >
           <div
             className="absolute -top-16 -right-10 w-44 h-44 rounded-full pointer-events-none"
@@ -3988,7 +3989,7 @@ function HomeDashboard({ onSignOut, now }) {
             style={{ background: 'radial-gradient(circle, rgba(27,30,66,0.1), transparent 70%)' }}
           />
 
-          <div className="relative flex items-center justify-between mb-5">
+          <div className="relative flex items-center justify-between" style={{ marginBottom: 'clamp(12px, 2vh, 20px)' }}>
             <div>
               <div className="text-[12px] font-semibold uppercase tracking-[0.08em]" style={{ color: 'var(--muted)' }}>
                 Attendance
@@ -4030,10 +4031,10 @@ function HomeDashboard({ onSignOut, now }) {
             </div>
           </div>
 
-          <div className="relative text-center mb-5">
+          <div className="relative text-center" style={{ marginBottom: 'clamp(12px, 2vh, 20px)' }}>
             <div
               className="tabular-nums tracking-tight font-semibold"
-              style={{ fontSize: 44, color: 'var(--ink)', letterSpacing: '-0.03em', lineHeight: 1 }}
+              style={{ fontSize: 'clamp(36px, 5.5dvh, 44px)', color: 'var(--ink)', letterSpacing: '-0.03em', lineHeight: 1 }}
             >
               {fmt(elapsed)}
             </div>
@@ -4050,7 +4051,7 @@ function HomeDashboard({ onSignOut, now }) {
             onClick={handleClockButton}
             className="pressable relative w-full text-white font-semibold text-[15px]"
             style={{
-              height: 52,
+              height: 'clamp(46px, 6.2dvh, 52px)',
               borderRadius: 16,
               background: clockedIn
                 ? 'linear-gradient(135deg, #3d4578 0%, #1b1e42 55%, #101228 100%)'
@@ -4073,7 +4074,7 @@ function HomeDashboard({ onSignOut, now }) {
         </div>
 
         <section className="workspace-section fade-up fade-up-delay-2">
-          <div className="flex items-end justify-between mb-4 px-0.5">
+          <div className="workspace-section__header">
             <div>
               <h2 className="text-[20px] font-semibold tracking-tight" style={{ color: 'var(--ink)' }}>
                 Workspace
@@ -4088,7 +4089,7 @@ function HomeDashboard({ onSignOut, now }) {
             </button>
           </div>
 
-          <div className="fade-up fade-up-delay-3 grid grid-cols-2 gap-3">
+          <div className="fade-up fade-up-delay-3 workspace-grid">
             {FEATURES.map((feature) => {
               const Icon = feature.icon;
               const isWide = feature.wide;
@@ -4098,7 +4099,7 @@ function HomeDashboard({ onSignOut, now }) {
                 return (
                   <div
                     key={feature.key}
-                    className="workspace-card workspace-card--news col-span-2 text-left"
+                    className="workspace-card workspace-card--news text-left"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
@@ -4133,11 +4134,11 @@ function HomeDashboard({ onSignOut, now }) {
                   }}
                   className={[
                     'workspace-card pressable text-left',
-                    isWide ? 'col-span-2 workspace-card--wide' : '',
+                    isWide ? 'workspace-card--wide' : '',
                   ].filter(Boolean).join(' ')}
                 >
-                  <div className={`flex h-full ${isWide ? 'flex-row items-center gap-3.5' : 'flex-col justify-between gap-5'}`}>
-                    <div className={`flex ${isWide ? 'items-center gap-3.5 flex-1 min-w-0' : 'flex-col gap-5'}`}>
+                  <div className={`flex h-full ${isWide ? 'flex-row items-center gap-3.5' : 'flex-col justify-between gap-3'}`}>
+                    <div className={`flex ${isWide ? 'items-center gap-3.5 flex-1 min-w-0' : 'flex-col gap-3'}`}>
                       <div className="workspace-card__icon">
                         <Icon
                           className="w-[18px] h-[18px]"
@@ -4180,20 +4181,14 @@ function HomeDashboard({ onSignOut, now }) {
             })}
           </div>
         </section>
+        </div>
       </div>
       </>
       )}
 
       {!activeCalendarDoc && !showCalendar && !showPerformance && !showLeave && (
-      <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 pt-2 z-20">
-        <div
-          className="glass-strong flex items-center justify-between"
-          style={{
-            borderRadius: 24,
-            padding: '10px 8px 12px',
-            boxShadow: '0 16px 40px rgba(27, 30, 66, 0.14)',
-          }}
-        >
+      <div className="home-bottom-nav">
+        <div className="glass-strong home-bottom-nav__bar">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = activeTab === item.key;
