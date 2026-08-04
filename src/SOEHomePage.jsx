@@ -60,6 +60,7 @@ import profile from './assets/profile.jpeg';
 import cuLogo from './assets/cu.png';
 import windowsLogo from './assets/windows.png';
 import backgroundImg from './assets/background.png';
+import { usePwaInstall } from './usePwaInstall';
 
 const ACCENT = '#1b1e42';
 
@@ -217,10 +218,10 @@ const FEATURES = [
 ];
 
 const PERFORMANCE_LEVELS = [
-  { key: 'exceptional', label: 'Exceptional', color: '#1b1e42' },
-  { key: 'expected', label: 'Expected', color: '#2eb87a' },
-  { key: 'medium', label: 'Medium', color: '#e6b422' },
-  { key: 'low', label: 'Low', color: '#e54848' },
+  { key: 'exceptional', label: 'Exceptional', color: '#1b1e42', gradient: ['#4a4f8a', '#1b1e42', '#0d0f24'] },
+  { key: 'expected', label: 'Expected', color: '#2eb87a', gradient: ['#69db9b', '#2eb87a', '#1a7a52'] },
+  { key: 'medium', label: 'Medium', color: '#e6b422', gradient: ['#ffd666', '#e6b422', '#a87b0f'] },
+  { key: 'low', label: 'Low', color: '#e54848', gradient: ['#ff8a8a', '#e54848', '#a61e1e'] },
 ];
 
 const PERFORMANCE_DATA = {
@@ -280,33 +281,54 @@ function getPerformanceLevelMeta(level) {
   return PERFORMANCE_LEVELS.find((item) => item.key === level) || PERFORMANCE_LEVELS[3];
 }
 
-function PerformanceRing({ value, size = 88, stroke = 8, color = '#e54848', track = 'rgba(255,255,255,0.18)' }) {
+function PerformanceRing({
+  value,
+  size = 88,
+  stroke = 8,
+  color = '#e54848',
+  gradient,
+  track,
+  id = 'ring',
+}) {
+  const cx = size / 2;
+  const cy = size / 2;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const clamped = Math.max(0, Math.min(value, 100));
-  const offset = circumference - (clamped / 100) * circumference;
+  const progress = (clamped / 100) * circumference;
+  const [light, mid, dark] = gradient?.length === 3
+    ? gradient
+    : [color, color, color];
+  const uid = `perf-ring-${id}`;
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="perf-ring" aria-hidden="true">
+      <defs>
+        <linearGradient id={`${uid}-grad`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={light} />
+          <stop offset="50%" stopColor={mid} />
+          <stop offset="100%" stopColor={dark} />
+        </linearGradient>
+      </defs>
       <circle
-        cx={size / 2}
-        cy={size / 2}
+        cx={cx}
+        cy={cy}
         r={radius}
         fill="none"
-        stroke={track}
         strokeWidth={stroke}
+        className="perf-ring__track"
+        style={track ? { stroke: track } : undefined}
       />
       <circle
-        cx={size / 2}
-        cy={size / 2}
+        cx={cx}
+        cy={cy}
         r={radius}
         fill="none"
-        stroke={color}
+        stroke={`url(#${uid}-grad)`}
         strokeWidth={stroke}
         strokeLinecap="round"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        strokeDasharray={`${progress} ${circumference - progress}`}
+        transform={`rotate(-90 ${cx} ${cy})`}
       />
     </svg>
   );
@@ -1260,10 +1282,33 @@ function PhoneFrame({ children, backgroundImage, darkMode = false }) {
 }
 
 function LoginScreen({ onLogin, now }) {
+  const {
+    canNativeInstall,
+    isIos,
+    isSafari,
+    isStandalone,
+    isInAppBrowser,
+    promptInstall,
+  } = usePwaInstall();
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
+
+  // Always offer install on mobile browsers (Safari has no native install prompt)
+  const showInstallButton = !isStandalone;
+  const useSafariFlow = isIos || isSafari;
+
+  const handleInstall = async () => {
+    if (canNativeInstall) {
+      await promptInstall();
+      return;
+    }
+    // iOS / Safari / browsers without install API — show steps
+    setShowInstallHelp(true);
+  };
+
   return (
     <PhoneFrame backgroundImage={backgroundImg}>
       <StatusBar now={now} />
-      <div className="flex-1 flex flex-col px-6 pb-10 pt-2">
+      <div className="relative flex-1 flex flex-col px-6 pb-10 pt-2">
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           {/* Hero logo */}
           <div className="fade-up mb-8">
@@ -1283,7 +1328,7 @@ function LoginScreen({ onLogin, now }) {
                 className="flex items-center justify-center overflow-hidden w-full h-full"
                 style={{
                   borderRadius: 18,
-                  background: ACCENT,
+                  background: '#000',
                   boxShadow: '0 8px 20px rgba(27,30,66,0.28)',
                 }}
               >
@@ -1331,6 +1376,78 @@ function LoginScreen({ onLogin, now }) {
             />
             <span className="login-glass-btn__label">Log in as a PCU Member</span>
           </button>
+
+          {showInstallButton && (
+            <button
+              type="button"
+              onClick={handleInstall}
+              className="pressable login-install-btn mt-3 w-full flex items-center justify-center gap-2"
+            >
+              {useSafariFlow || !canNativeInstall ? (
+                <Share2 className="w-4 h-4" strokeWidth={2.2} />
+              ) : (
+                <Download className="w-4 h-4" strokeWidth={2.2} />
+              )}
+              <span>
+                {useSafariFlow || !canNativeInstall
+                  ? 'Add to Home Screen'
+                  : 'Install App'}
+              </span>
+            </button>
+          )}
+
+          {showInstallHelp && (
+            <div className="login-safari-help" role="dialog" aria-modal="true" aria-label="Install SOE">
+              <div className="login-safari-help__card">
+                <div className="login-safari-help__icon-wrap">
+                  <img src={logo} alt="" className="login-safari-help__logo" />
+                </div>
+                <p className="login-safari-help__title">
+                  {useSafariFlow ? 'Install SOE on iPhone' : 'Install SOE'}
+                </p>
+                {useSafariFlow ? (
+                  <>
+                    <p className="login-safari-help__note">
+                      Safari does not show an Install button. Add SOE to your Home Screen instead.
+                    </p>
+                    {isInAppBrowser && (
+                      <p className="login-safari-help__warn">
+                        If you opened this from WhatsApp, tap <strong>…</strong> or Share and choose{' '}
+                        <strong>Open in Safari</strong> first, then follow the steps below.
+                      </p>
+                    )}
+                    <ol className="login-safari-help__steps">
+                      <li>
+                        Tap the <strong>Share</strong> icon at the bottom (□↑)
+                      </li>
+                      <li>
+                        Scroll and tap <strong>Add to Home Screen</strong>
+                      </li>
+                      <li>
+                        Tap <strong>Add</strong> — the SOE icon will appear on your Home Screen
+                      </li>
+                    </ol>
+                  </>
+                ) : (
+                  <ol className="login-safari-help__steps">
+                    <li>
+                      Open the browser menu (⋮)
+                    </li>
+                    <li>
+                      Choose <strong>Install app</strong> or <strong>Add to Home screen</strong>
+                    </li>
+                  </ol>
+                )}
+                <button
+                  type="button"
+                  className="pressable login-safari-help__close"
+                  onClick={() => setShowInstallHelp(false)}
+                >
+                  Got it
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="pt-6 flex flex-col items-center gap-2.5">
             <span
@@ -2814,10 +2931,13 @@ function HomeDashboard({ onSignOut, now }) {
             <section className="performance-view__hero">
               <div className="performance-view__hero-gauge">
                 <PerformanceRing
+                  id="final-score"
                   value={PERFORMANCE_DATA.finalScore}
                   size={96}
-                  stroke={9}
-                  color="#e54848"
+                  stroke={10}
+                  color={getPerformanceLevelMeta(PERFORMANCE_DATA.level).color}
+                  gradient={getPerformanceLevelMeta(PERFORMANCE_DATA.level).gradient}
+                  track="rgba(255,255,255,0.18)"
                 />
                 <div className="performance-view__hero-score">
                   {PERFORMANCE_DATA.finalScore.toFixed(2)}%
@@ -2887,11 +3007,12 @@ function HomeDashboard({ onSignOut, now }) {
                         </div>
                         <div className="performance-view__metric-gauge">
                           <PerformanceRing
+                            id={metric.key}
                             value={metric.value}
                             size={78}
-                            stroke={7}
+                            stroke={10}
                             color={level.color}
-                            track="rgba(27,30,66,0.08)"
+                            gradient={level.gradient}
                           />
                           <div className="performance-view__metric-value">
                             {Number.isInteger(metric.value) ? metric.value : metric.value.toFixed(1)}%

@@ -1424,6 +1424,125 @@ button {
   transform: scale(0.985);
 }
 
+.login-install-btn {
+  height: 48px;
+  border-radius: 999px;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #1b1e42;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(27, 30, 66, 0.12);
+  box-shadow:
+    0 8px 20px rgba(27, 30, 66, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition:
+    transform 0.18s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.login-install-btn:hover {
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(27, 30, 66, 0.14);
+}
+
+.login-install-btn:active {
+  transform: scale(0.985);
+}
+
+.login-safari-help {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(16, 18, 42, 0.42);
+  backdrop-filter: blur(4px);
+}
+
+.login-safari-help__card {
+  width: 100%;
+  max-width: 340px;
+  border-radius: 22px;
+  padding: 22px 20px 18px;
+  background: #ffffff;
+  box-shadow: 0 18px 40px rgba(16, 18, 48, 0.28);
+  text-align: left;
+}
+
+.login-safari-help__icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.login-safari-help__logo {
+  width: 82%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.login-safari-help__title {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1b1e42;
+}
+
+.login-safari-help__note {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #5a6178;
+}
+
+.login-safari-help__warn {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff6e8;
+  color: #7a4d00;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.login-safari-help__steps {
+  margin: 0 0 16px;
+  padding-left: 18px;
+  color: #3f4558;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.login-safari-help__steps li + li {
+  margin-top: 6px;
+}
+
+.login-safari-help__close {
+  width: 100%;
+  height: 44px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: #1b1e42;
+}
+
 /* Day Journal */
 .journal-view {
   flex: 1;
@@ -4313,8 +4432,13 @@ button {
   flex-shrink: 0;
 }
 
-.perf-donut__track {
+.perf-donut__track,
+.perf-ring__track {
   stroke: color-mix(in srgb, var(--ink) 9%, transparent);
+}
+
+.perf-ring {
+  flex-shrink: 0;
 }
 
 .performance-view__trend-card {

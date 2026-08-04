@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 
-const APK_URL = './downloads/SOE.apk';
-
 function detectPlatform() {
   if (typeof window === 'undefined') {
-    return { isIos: false, isSafari: false, isStandalone: false, isAndroid: false };
+    return {
+      isIos: false,
+      isSafari: false,
+      isStandalone: false,
+      isAndroid: false,
+      isInAppBrowser: false,
+    };
   }
 
   const ua = window.navigator.userAgent || '';
@@ -12,15 +16,23 @@ function detectPlatform() {
     /iPad|iPhone|iPod/.test(ua) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isAndroid = /Android/i.test(ua);
+  // Real Safari on iOS (not Chrome/Firefox/Edge wrappers)
   const isSafari =
     isIos &&
     /Safari/i.test(ua) &&
-    !/CriOS|FxiOS|OPiOS|EdgiOS|Chrome|Android/i.test(ua);
+    !/CriOS|FxiOS|OPiOS|EdgiOS/i.test(ua);
+  const isInAppBrowser =
+    /FBAN|FBAV|Instagram|Line\/|WhatsApp|MicroMessenger|TikTok|Bytedance|Snapchat|Twitter|LinkedInApp/i.test(
+      ua,
+    ) ||
+    // Many in-app browsers omit "Safari" version markers inconsistently;
+    // WhatsApp/iOS often opens SFSafariViewController which still looks like Safari.
+    (isIos && document.referrer.includes('whatsapp'));
   const isStandalone =
     window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
 
-  return { isIos, isSafari, isStandalone, isAndroid };
+  return { isIos, isSafari, isStandalone, isAndroid, isInAppBrowser };
 }
 
 export function usePwaInstall() {
@@ -65,22 +77,10 @@ export function usePwaInstall() {
     return { ok: false, reason: 'dismissed' };
   }, [deferredPrompt]);
 
-  const downloadApk = useCallback(() => {
-    const link = document.createElement('a');
-    link.href = APK_URL;
-    link.download = 'SOE.apk';
-    link.rel = 'noopener';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  }, []);
-
   return {
     ...platform,
     canNativeInstall,
     installed,
     promptInstall,
-    downloadApk,
-    apkUrl: APK_URL,
   };
 }
