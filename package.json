@@ -10,11 +10,12 @@
     "preview": "vite preview --host",
     "cap:sync": "npm run build && npx cap sync android",
     "cap:open": "npx cap open android",
-    "apk:debug": "npm run cap:sync && cd android && .\\gradlew.bat assembleDebug"
+    "apk:debug": "npm run cap:sync && npm run apk:assemble",
+    "apk:assemble": "cd android && set \"JAVA_HOME=C:\\Program Files\\Java\\jdk-17\"&& set \"ANDROID_HOME=%LOCALAPPDATA%\\Android\\Sdk\"&& .\\gradlew.bat assembleDebug"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
-    "@capacitor/cli": "8.5.0",
+    "@capacitor/cli": "7.6.8",
     "@capacitor/core": "^8.5.0",
     "lucide-react": "^1.28.0",
     "react": "^19.2.8",

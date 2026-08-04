@@ -1184,7 +1184,7 @@ function StatusBar({ now, light = false }) {
   const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
   const color = light ? '#ffffff' : 'var(--ink)';
   return (
-    <div className="shrink-0 flex items-center justify-between px-7 pt-4 pb-1 relative z-10">
+    <div className="status-bar-mock shrink-0 flex items-center justify-between px-7 pt-4 pb-1 relative z-10">
       <span className="font-semibold text-[13px]" style={{ color }}>{time}</span>
       <div className="flex items-center gap-1.5" style={{ color }}>
         <Signal className="w-3.5 h-3.5" strokeWidth={2.2} />
@@ -1197,23 +1197,11 @@ function StatusBar({ now, light = false }) {
 
 function PhoneFrame({ children, backgroundImage, darkMode = false }) {
   return (
-    <div
-      className="min-h-screen w-full flex items-center justify-center p-5"
-      style={{ background: 'linear-gradient(160deg, #e8edf7 0%, #f4f6fb 45%, #dde5f4 100%)' }}
-    >
+    <div className="phone-frame-outer">
       <div
-        className={`relative w-full flex flex-col overflow-hidden ${backgroundImage ? '' : 'phone-shell'}`}
+        className={`phone-frame-inner relative w-full flex flex-col overflow-hidden ${backgroundImage ? '' : 'phone-shell'}`}
         data-theme={darkMode ? 'dark' : 'light'}
-        style={{
-          maxWidth: '390px',
-          height: '844px',
-          borderRadius: '40px',
-          boxShadow: darkMode
-            ? '0 30px 80px rgba(15, 18, 36, 0.35), inset 0 1px 0 rgba(255,255,255,0.06)'
-            : '0 30px 80px rgba(27, 30, 66, 0.18), inset 0 1px 0 rgba(255,255,255,0.8)',
-          border: darkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(255,255,255,0.7)',
-          fontFamily: 'var(--font)',
-        }}
+        style={{ fontFamily: 'var(--font)' }}
       >
         {backgroundImage && (
           <>

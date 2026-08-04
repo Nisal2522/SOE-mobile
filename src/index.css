@@ -141,6 +141,66 @@ button {
   background: var(--bg);
 }
 
+/* Desktop: iPhone-like preview frame. Phone: fill the real screen. */
+.phone-frame-outer {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(160deg, #e8edf7 0%, #f4f6fb 45%, #dde5f4 100%);
+}
+
+.phone-frame-inner {
+  position: relative;
+  width: 100%;
+  max-width: 390px;
+  height: 844px;
+  border-radius: 40px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 30px 80px rgba(27, 30, 66, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.phone-frame-inner[data-theme='dark'] {
+  box-shadow:
+    0 30px 80px rgba(15, 18, 36, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 480px) {
+  .phone-frame-outer {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    background: transparent;
+  }
+
+  .phone-frame-inner,
+  .phone-frame-inner[data-theme='dark'] {
+    max-width: none;
+    width: 100%;
+    height: 100dvh;
+    min-height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .status-bar-mock {
+    display: none;
+  }
+}
+
 .home-brand-logo {
   display: block;
   width: 128px;
