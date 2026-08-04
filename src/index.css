@@ -1556,7 +1556,7 @@ button {
 }
 
 .journal-view__top {
-  padding: 4px 16px 12px;
+  padding: 14px 16px 12px;
   border-bottom: 1px solid color-mix(in srgb, var(--ink) 6%, transparent);
   background: color-mix(in srgb, var(--glass-strong) 88%, transparent);
   backdrop-filter: blur(16px);
@@ -2996,7 +2996,7 @@ button {
 }
 
 .leave-view__top {
-  padding: 4px 14px 12px;
+  padding: 14px 14px 12px;
   border-bottom: 1px solid color-mix(in srgb, var(--ink) 6%, transparent);
   background: color-mix(in srgb, var(--glass-strong) 88%, transparent);
   backdrop-filter: blur(16px);
@@ -4117,7 +4117,7 @@ button {
 }
 
 .performance-view__top {
-  padding: 4px 14px 12px;
+  padding: 14px 14px 12px;
   border-bottom: 1px solid color-mix(in srgb, var(--ink) 6%, transparent);
   background: color-mix(in srgb, var(--glass-strong) 88%, transparent);
   backdrop-filter: blur(16px);
