@@ -242,18 +242,21 @@ const PERFORMANCE_DATA = {
       key: 'department',
       title: 'Department Contribution',
       color: '#e54848',
+      gradient: ['#ff8a8a', '#e54848', '#a61e1e'],
       items: [{ label: 'IT', value: 100 }],
     },
     {
       key: 'task-group',
       title: 'Task Group Contribution',
       color: '#3b5bdb',
+      gradient: ['#748ffc', '#3b5bdb', '#1c3d99'],
       items: [{ label: 'IT - SOE Development', value: 100 }],
     },
     {
       key: 'project',
       title: 'Project Contribution',
       color: '#22b8cf',
+      gradient: ['#66d9e8', '#22b8cf', '#0b7285'],
       items: [{ label: 'CU Sri Lanka - SOE V2', value: 100 }],
     },
   ],
@@ -309,23 +312,52 @@ function PerformanceRing({ value, size = 88, stroke = 8, color = '#e54848', trac
   );
 }
 
-function PerformanceDonut({ color, size = 112 }) {
+function PerformanceDonut({ color, gradient, value = 100, size = 112, id = 'donut' }) {
   const stroke = 14;
+  const cx = size / 2;
+  const cy = size / 2;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
+  const clamped = Math.max(0, Math.min(value, 100));
+  const progress = (clamped / 100) * circumference;
+  const [light, mid, dark] = gradient?.length === 3
+    ? gradient
+    : [color, color, color];
+  const uid = `perf-donut-${id}`;
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="perf-donut" aria-hidden="true">
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className="perf-donut"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id={`${uid}-grad`} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor={light} />
+          <stop offset="50%" stopColor={mid} />
+          <stop offset="100%" stopColor={dark} />
+        </linearGradient>
+      </defs>
       <circle
-        cx={size / 2}
-        cy={size / 2}
+        cx={cx}
+        cy={cy}
         r={radius}
         fill="none"
-        stroke={color}
         strokeWidth={stroke}
-        strokeDasharray={circumference}
-        strokeDashoffset={0}
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        className="perf-donut__track"
+      />
+      <circle
+        cx={cx}
+        cy={cy}
+        r={radius}
+        fill="none"
+        stroke={`url(#${uid}-grad)`}
+        strokeWidth={stroke}
+        strokeLinecap="round"
+        strokeDasharray={`${progress} ${circumference - progress}`}
+        transform={`rotate(-90 ${cx} ${cy})`}
       />
     </svg>
   );
@@ -2893,13 +2925,20 @@ function HomeDashboard({ onSignOut, now }) {
                     <article key={item.key} className="performance-view__contrib-card">
                       <h3 className="performance-view__contrib-title">{item.title}</h3>
                       <div className="performance-view__contrib-body">
-                        <PerformanceDonut color={item.color} />
+                        <PerformanceDonut
+                          id={item.key}
+                          color={item.color}
+                          gradient={item.gradient}
+                          value={item.items.reduce((sum, slice) => sum + slice.value, 0)}
+                        />
                         <div className="performance-view__contrib-legend">
                           {item.items.map((slice) => (
                             <div key={slice.label} className="performance-view__contrib-row">
                               <span
                                 className="performance-view__legend-dot"
-                                style={{ background: item.color }}
+                                style={{
+                                  background: `linear-gradient(135deg, ${item.gradient[0]}, ${item.gradient[2]})`,
+                                }}
                               />
                               <span className="truncate">{slice.label}</span>
                               <strong>{slice.value}%</strong>

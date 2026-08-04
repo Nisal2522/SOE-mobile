@@ -1,0 +1,19 @@
+﻿SOE Android APK (sideload)
+=========================
+
+APK file:
+  soe-app\apk\SOE-debug.apk
+
+Install on phone:
+  1. Copy SOE-debug.apk to your Android phone
+  2. Open the file on the phone
+  3. Allow "Install unknown apps" for Files/Chrome if asked
+  4. Tap Install
+
+Rebuild after code changes:
+  cd soe-app
+  npm run apk:debug
+
+Requirements (already set up on this PC):
+  - JDK 21: C:\Program Files\Microsoft\jdk-21.0.12.8-hotspot
+  - Android SDK: %LOCALAPPDATA%\Android\Sdk

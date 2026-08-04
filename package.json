@@ -10,8 +10,10 @@
     "preview": "vite preview --host",
     "cap:sync": "npm run build && npx cap sync android",
     "cap:open": "npx cap open android",
-    "apk:debug": "npm run cap:sync && npm run apk:assemble",
-    "apk:assemble": "cd android && set \"JAVA_HOME=C:\\Program Files\\Java\\jdk-17\"&& set \"ANDROID_HOME=%LOCALAPPDATA%\\Android\\Sdk\"&& .\\gradlew.bat assembleDebug"
+    "apk:debug": "npm run cap:sync && npm run apk:assemble && npm run apk:publish",
+    "apk:assemble": "cd android && set \"JAVA_HOME=C:\\Program Files\\Microsoft\\jdk-21.0.12.8-hotspot\"&& set \"ANDROID_HOME=%LOCALAPPDATA%\\Android\\Sdk\"&& .\\gradlew.bat assembleDebug",
+    "apk:publish": "node -e \"const fs=require('fs');const path=require('path');const src=path.join('android','app','build','outputs','apk','debug','app-debug.apk');const dir=path.join('public','downloads');const apkDir='apk';fs.mkdirSync(dir,{recursive:true});fs.mkdirSync(apkDir,{recursive:true});fs.copyFileSync(src,path.join(dir,'SOE.apk'));fs.copyFileSync(src,path.join(apkDir,'SOE-debug.apk'));console.log('Published public/downloads/SOE.apk');\"",
+    "icons:pwa": "node scripts/generate-pwa-icons.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

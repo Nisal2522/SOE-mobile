@@ -4309,6 +4309,14 @@ button {
   font-weight: 800;
 }
 
+.perf-donut {
+  flex-shrink: 0;
+}
+
+.perf-donut__track {
+  stroke: color-mix(in srgb, var(--ink) 9%, transparent);
+}
+
 .performance-view__trend-card {
   background: var(--card);
   border: 1px solid color-mix(in srgb, var(--ink) 7%, transparent);
