@@ -8,6 +8,7 @@ function detectPlatform() {
       isStandalone: false,
       isAndroid: false,
       isInAppBrowser: false,
+      isIosChrome: false,
     };
   }
 
@@ -16,25 +17,34 @@ function detectPlatform() {
     /iPad|iPhone|iPod/.test(ua) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isAndroid = /Android/i.test(ua);
-  // Real Safari on iOS (not Chrome/Firefox/Edge wrappers)
+  const isIosChrome = isIos && /CriOS/i.test(ua);
+  // Safari or SFSafariViewController (WhatsApp "Open in Safari" still counts)
   const isSafari =
     isIos &&
     /Safari/i.test(ua) &&
     !/CriOS|FxiOS|OPiOS|EdgiOS/i.test(ua);
   const isInAppBrowser =
-    /FBAN|FBAV|Instagram|Line\/|WhatsApp|MicroMessenger|TikTok|Bytedance|Snapchat|Twitter|LinkedInApp/i.test(
+    /FBAN|FBAV|Instagram|Line\/|WhatsApp|MicroMessenger|TikTok|BytedanceWebview|Snapchat|Twitter|LinkedInApp/i.test(
       ua,
-    ) ||
-    // Many in-app browsers omit "Safari" version markers inconsistently;
-    // WhatsApp/iOS often opens SFSafariViewController which still looks like Safari.
-    (isIos && document.referrer.includes('whatsapp'));
+    );
   const isStandalone =
     window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
 
-  return { isIos, isSafari, isStandalone, isAndroid, isInAppBrowser };
+  return {
+    isIos,
+    isSafari,
+    isStandalone,
+    isAndroid,
+    isInAppBrowser,
+    isIosChrome,
+  };
 }
 
+/**
+ * Android Chrome: beforeinstallprompt → real Install dialog.
+ * iPhone/iPad: Apple blocks that API — only Share → Add to Home Screen works.
+ */
 export function usePwaInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [installed, setInstalled] = useState(false);
@@ -42,6 +52,7 @@ export function usePwaInstall() {
 
   useEffect(() => {
     setPlatform(detectPlatform());
+    setInstalled(detectPlatform().isStandalone);
 
     const onBeforeInstall = (event) => {
       event.preventDefault();
@@ -54,8 +65,14 @@ export function usePwaInstall() {
       setPlatform(detectPlatform());
     };
 
+    const onDisplayMode = () => {
+      setPlatform(detectPlatform());
+      setInstalled(detectPlatform().isStandalone);
+    };
+
     window.addEventListener('beforeinstallprompt', onBeforeInstall);
     window.addEventListener('appinstalled', onInstalled);
+    window.matchMedia('(display-mode: standalone)').addEventListener?.('change', onDisplayMode);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', onBeforeInstall);
@@ -64,6 +81,8 @@ export function usePwaInstall() {
   }, []);
 
   const canNativeInstall = Boolean(deferredPrompt) && !platform.isStandalone && !installed;
+  // Every iPhone/iPad needs the manual Home Screen flow (no install API)
+  const needsIosInstallHelp = platform.isIos && !platform.isStandalone && !installed;
 
   const promptInstall = useCallback(async () => {
     if (!deferredPrompt) return { ok: false, reason: 'unavailable' };
@@ -80,6 +99,7 @@ export function usePwaInstall() {
   return {
     ...platform,
     canNativeInstall,
+    needsIosInstallHelp,
     installed,
     promptInstall,
   };

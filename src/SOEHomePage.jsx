@@ -1284,24 +1284,24 @@ function PhoneFrame({ children, backgroundImage, darkMode = false }) {
 function LoginScreen({ onLogin, now }) {
   const {
     canNativeInstall,
-    isIos,
-    isSafari,
+    needsIosInstallHelp,
     isStandalone,
     isInAppBrowser,
+    isIosChrome,
     promptInstall,
   } = usePwaInstall();
   const [showInstallHelp, setShowInstallHelp] = useState(false);
 
-  // Always offer install on mobile browsers (Safari has no native install prompt)
-  const showInstallButton = !isStandalone;
-  const useSafariFlow = isIos || isSafari;
+  // Same Download App CTA on Android + iPhone (when not already installed)
+  const showDownloadButton = !isStandalone;
 
-  const handleInstall = async () => {
+  const handleDownloadApp = async () => {
+    // Android Chrome: native install dialog
     if (canNativeInstall) {
       await promptInstall();
       return;
     }
-    // iOS / Safari / browsers without install API — show steps
+    // iPhone / other: guided install (Apple has no download API)
     setShowInstallHelp(true);
   };
 
@@ -1377,67 +1377,73 @@ function LoginScreen({ onLogin, now }) {
             <span className="login-glass-btn__label">Log in as a PCU Member</span>
           </button>
 
-          {showInstallButton && (
+          {showDownloadButton && (
             <button
               type="button"
-              onClick={handleInstall}
+              onClick={handleDownloadApp}
               className="pressable login-install-btn mt-3 w-full flex items-center justify-center gap-2"
             >
-              {useSafariFlow || !canNativeInstall ? (
-                <Share2 className="w-4 h-4" strokeWidth={2.2} />
-              ) : (
-                <Download className="w-4 h-4" strokeWidth={2.2} />
-              )}
-              <span>
-                {useSafariFlow || !canNativeInstall
-                  ? 'Add to Home Screen'
-                  : 'Install App'}
-              </span>
+              <Download className="w-4 h-4" strokeWidth={2.2} />
+              <span>Download App</span>
             </button>
           )}
 
           {showInstallHelp && (
-            <div className="login-safari-help" role="dialog" aria-modal="true" aria-label="Install SOE">
-              <div className="login-safari-help__card">
+            <div
+              className="login-safari-help"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Download SOE App"
+              onClick={() => setShowInstallHelp(false)}
+            >
+              <div
+                className="login-safari-help__card"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="login-safari-help__icon-wrap">
                   <img src={logo} alt="" className="login-safari-help__logo" />
                 </div>
-                <p className="login-safari-help__title">
-                  {useSafariFlow ? 'Install SOE on iPhone' : 'Install SOE'}
-                </p>
-                {useSafariFlow ? (
+                <p className="login-safari-help__title">Download SOE App</p>
+
+                {needsIosInstallHelp ? (
                   <>
                     <p className="login-safari-help__note">
-                      Safari does not show an Install button. Add SOE to your Home Screen instead.
+                      On iPhone, apps cannot be downloaded like on Android. Use the steps below to
+                      install SOE on your Home Screen — it opens full screen like an app.
                     </p>
-                    {isInAppBrowser && (
+                    {(isInAppBrowser || isIosChrome) && (
                       <p className="login-safari-help__warn">
-                        If you opened this from WhatsApp, tap <strong>…</strong> or Share and choose{' '}
-                        <strong>Open in Safari</strong> first, then follow the steps below.
+                        {isIosChrome
+                          ? 'Open this page in Safari first (Chrome on iPhone cannot install PWAs).'
+                          : 'If you opened this from WhatsApp, tap … and choose Open in Safari, then continue.'}
                       </p>
                     )}
                     <ol className="login-safari-help__steps">
                       <li>
-                        Tap the <strong>Share</strong> icon at the bottom (□↑)
+                        Tap the <strong>Share</strong> button at the bottom of Safari (square with ↑)
                       </li>
                       <li>
-                        Scroll and tap <strong>Add to Home Screen</strong>
+                        Scroll down and tap <strong>Add to Home Screen</strong>
                       </li>
                       <li>
-                        Tap <strong>Add</strong> — the SOE icon will appear on your Home Screen
+                        Tap <strong>Add</strong> — SOE appears on your Home Screen with the app icon
                       </li>
                     </ol>
                   </>
                 ) : (
-                  <ol className="login-safari-help__steps">
-                    <li>
-                      Open the browser menu (⋮)
-                    </li>
-                    <li>
-                      Choose <strong>Install app</strong> or <strong>Add to Home screen</strong>
-                    </li>
-                  </ol>
+                  <>
+                    <p className="login-safari-help__note">
+                      Install SOE from your browser menu so it opens like an app.
+                    </p>
+                    <ol className="login-safari-help__steps">
+                      <li>Open the browser menu (⋮)</li>
+                      <li>
+                        Choose <strong>Install app</strong> or <strong>Add to Home screen</strong>
+                      </li>
+                    </ol>
+                  </>
                 )}
+
                 <button
                   type="button"
                   className="pressable login-safari-help__close"
