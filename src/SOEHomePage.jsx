@@ -32,7 +32,6 @@ import {
   ChevronLeft,
   Play,
   Pause,
-  Square,
   Eye,
   Pencil,
   RefreshCw,
@@ -618,7 +617,7 @@ const WFH_RECORDS = [
   },
 ];
 
-const JOURNAL_PAGE_SIZE = 10;
+const JOURNAL_PAGE_SIZE = 6;
 
 const JOURNAL_SEED = [
   {
@@ -956,7 +955,24 @@ const OPPORTUNITIES_SEED = [
   },
 ];
 
-function formatJournalTimer(totalSeconds) {
+function formatJournalHours(totalSeconds) {
+  const hours = Math.max(0, Number(totalSeconds) || 0) / 3600;
+  const rounded = Math.round(hours * 100) / 100;
+  const text = Number.isInteger(rounded)
+    ? String(rounded)
+    : String(rounded).replace(/(\.\d*?[1-9])0+$/, '$1');
+  return `${text} hr`;
+}
+
+function formatJournalHoursDraft(totalSeconds) {
+  const hours = Math.max(0, Number(totalSeconds) || 0) / 3600;
+  const rounded = Math.round(hours * 100) / 100;
+  return Number.isInteger(rounded)
+    ? String(rounded)
+    : String(rounded).replace(/(\.\d*?[1-9])0+$/, '$1');
+}
+
+function formatJournalElapsed(totalSeconds) {
   const safe = Math.max(0, Math.floor(Number(totalSeconds) || 0));
   const h = Math.floor(safe / 3600);
   const m = Math.floor((safe % 3600) / 60);
@@ -964,14 +980,16 @@ function formatJournalTimer(totalSeconds) {
   return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':');
 }
 
-function parseJournalTimer(value) {
-  const cleaned = String(value || '').trim();
-  const match = cleaned.match(/^(\d{1,3}):([0-5]?\d):([0-5]?\d)$/);
-  if (!match) return null;
-  const hours = Number(match[1]);
-  const minutes = Number(match[2]);
-  const seconds = Number(match[3]);
-  return (hours * 3600) + (minutes * 60) + seconds;
+function parseJournalHours(value) {
+  const cleaned = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s*hrs?\.?$/, '')
+    .trim();
+  if (!cleaned) return null;
+  const hours = Number(cleaned);
+  if (!Number.isFinite(hours) || hours < 0) return null;
+  return Math.round(hours * 3600);
 }
 
 function shiftDate(base, offsetDays) {
@@ -2249,7 +2267,7 @@ function HomeDashboard({ onSignOut, now }) {
 
   const resetJournalTimer = (taskId) => {
     setRunningTaskId((prev) => (prev === taskId ? null : prev));
-    setJournalTimeDrafts((prev) => ({ ...prev, [taskId]: '00:00:00' }));
+    setJournalTimeDrafts((prev) => ({ ...prev, [taskId]: '0' }));
     setJournalTasks((prev) => prev.map((task) => (
       task.id === taskId ? { ...task, seconds: 0, status: 'pending' } : task
     )));
@@ -2259,19 +2277,22 @@ function HomeDashboard({ onSignOut, now }) {
     if (task.status === 'done' || runningTaskId === task.id) return;
     setJournalTimeDrafts((prev) => ({
       ...prev,
-      [task.id]: formatJournalTimer(task.seconds),
+      [task.id]: formatJournalHoursDraft(task.seconds),
     }));
   };
 
   const changeJournalTimeDraft = (taskId, value) => {
-    const sanitized = value.replace(/[^\d:]/g, '').slice(0, 8);
+    const sanitized = value
+      .replace(/[^\d.]/g, '')
+      .replace(/(\..*)\./g, '$1')
+      .slice(0, 6);
     setJournalTimeDrafts((prev) => ({ ...prev, [taskId]: sanitized }));
   };
 
   const commitJournalTimeDraft = (taskId) => {
     const draft = journalTimeDrafts[taskId];
     if (draft === undefined) return;
-    const parsed = parseJournalTimer(draft);
+    const parsed = parseJournalHours(draft);
     setJournalTimeDrafts((prev) => {
       const next = { ...prev };
       delete next[taskId];
@@ -3382,11 +3403,11 @@ function HomeDashboard({ onSignOut, now }) {
                         <div className="journal-card__header">
                           <button
                             type="button"
-                            className="journal-card__main"
+                            className="journal-card__lead"
                             onClick={() => toggleJournalExpand(task.id)}
                             aria-expanded={expanded}
+                            aria-label={expanded ? `Collapse ${task.title}` : `Expand ${task.title}`}
                           >
-                            <h2 className="journal-card__title">{task.title}</h2>
                             <span
                               className={`journal-card__status journal-card__status--${running ? 'active' : task.status}`}
                               title={running ? 'active' : task.status}
@@ -3405,86 +3426,92 @@ function HomeDashboard({ onSignOut, now }) {
                             />
                           </button>
 
-                          <div
-                            className={[
-                              'journal-timer',
-                              running ? 'is-running' : '',
-                              task.status === 'done' ? 'is-locked' : '',
-                            ].filter(Boolean).join(' ')}
-                          >
-                            <Clock3 className="journal-timer__clock" strokeWidth={2.2} />
-                            <input
-                              className="journal-timer__value tabular-nums"
-                              type="text"
-                              inputMode="numeric"
-                              aria-label={`Time spent on ${task.title}`}
-                              value={
-                                journalTimeDrafts[task.id] !== undefined
-                                  ? journalTimeDrafts[task.id]
-                                  : formatJournalTimer(task.seconds)
-                              }
-                              readOnly={task.status === 'done' || running}
-                              disabled={task.status === 'done'}
-                              onFocus={() => beginJournalTimeEdit(task)}
-                              onChange={(e) => changeJournalTimeDraft(task.id, e.target.value)}
-                              onBlur={() => commitJournalTimeDraft(task.id)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.currentTarget.blur();
-                                }
-                              }}
-                              placeholder="00:00:00"
-                              title={
-                                task.status === 'done'
-                                  ? 'Completed — time locked'
-                                  : running
-                                    ? 'Stop the clock to edit manually'
-                                    : 'Enter time as HH:MM:SS'
-                              }
-                            />
-                            <div className="journal-timer__controls">
+                          <span className="journal-card__sep" aria-hidden="true" />
+
+                          <div className="journal-card__detail-row">
+                            <button
+                              type="button"
+                              className="journal-card__main"
+                              onClick={() => toggleJournalExpand(task.id)}
+                              aria-expanded={expanded}
+                            >
+                              <h2 className="journal-card__title">{task.title}</h2>
+                            </button>
+
+                            <div
+                              className={[
+                                'journal-timer',
+                                running ? 'is-running' : '',
+                                task.status === 'done' ? 'is-locked' : '',
+                              ].filter(Boolean).join(' ')}
+                            >
                               {running ? (
                                 <>
-                                  <button
-                                    type="button"
-                                    className="journal-timer__btn"
-                                    onClick={pauseJournalTimer}
-                                    aria-label="Pause timer"
+                                  <span
+                                    className="journal-timer__elapsed tabular-nums"
+                                    aria-live="polite"
+                                    aria-label={`Elapsed ${formatJournalElapsed(task.seconds)}`}
                                   >
-                                    <Pause className="w-3.5 h-3.5" strokeWidth={2.4} />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="journal-timer__btn"
-                                    onClick={() => stopJournalTimer(task.id)}
-                                    aria-label="Stop timer"
-                                  >
-                                    <Square className="w-3 h-3" strokeWidth={2.6} />
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="journal-timer__btn"
-                                    onClick={() => resetJournalTimer(task.id)}
-                                    aria-label="Reset timer"
-                                  >
-                                    <X className="w-3.5 h-3.5" strokeWidth={2.4} />
-                                  </button>
+                                    {formatJournalElapsed(task.seconds)}
+                                  </span>
+                                  <div className="journal-timer__controls">
+                                    <button
+                                      type="button"
+                                      className="journal-timer__pause"
+                                      onClick={pauseJournalTimer}
+                                      aria-label="Pause timer"
+                                      title="Pause"
+                                    >
+                                      <Pause className="w-3.5 h-3.5" strokeWidth={2.4} />
+                                    </button>
+                                  </div>
                                 </>
                               ) : (
-                                <button
-                                  type="button"
-                                  className="journal-timer__play"
-                                  onClick={() => startJournalTimer(task.id)}
-                                  aria-label="Start timer"
-                                  disabled={task.status === 'done'}
-                                  title={
-                                    task.status === 'done'
-                                      ? 'Completed — timer locked'
-                                      : 'Start clock'
-                                  }
-                                >
-                                  <Play className="w-3.5 h-3.5" strokeWidth={2.4} />
-                                </button>
+                                <>
+                                  <input
+                                    className="journal-timer__value tabular-nums"
+                                    type="text"
+                                    inputMode="decimal"
+                                    aria-label={`Hours spent on ${task.title}`}
+                                    value={
+                                      journalTimeDrafts[task.id] !== undefined
+                                        ? journalTimeDrafts[task.id]
+                                        : formatJournalHours(task.seconds)
+                                    }
+                                    readOnly={task.status === 'done'}
+                                    disabled={task.status === 'done'}
+                                    onFocus={() => beginJournalTimeEdit(task)}
+                                    onChange={(e) => changeJournalTimeDraft(task.id, e.target.value)}
+                                    onBlur={() => commitJournalTimeDraft(task.id)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        e.currentTarget.blur();
+                                      }
+                                    }}
+                                    placeholder="0 hr"
+                                    title={
+                                      task.status === 'done'
+                                        ? 'Completed — time locked'
+                                        : 'Enter hours spent (e.g. 1.5)'
+                                    }
+                                  />
+                                  <div className="journal-timer__controls">
+                                    <button
+                                      type="button"
+                                      className="journal-timer__play"
+                                      onClick={() => startJournalTimer(task.id)}
+                                      aria-label="Start timer"
+                                      disabled={task.status === 'done'}
+                                      title={
+                                        task.status === 'done'
+                                          ? 'Completed — timer locked'
+                                          : 'Start clock'
+                                      }
+                                    >
+                                      <Play className="w-3.5 h-3.5" strokeWidth={2.4} />
+                                    </button>
+                                  </div>
+                                </>
                               )}
                             </div>
                           </div>
