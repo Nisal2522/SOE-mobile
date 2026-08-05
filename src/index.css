@@ -4006,6 +4006,12 @@ button {
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.leave-tabs__btn:hover:not(.is-active) {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
 }
 
 .leave-tabs__btn.is-active {
@@ -5076,14 +5082,14 @@ button {
 .performance-view__tabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
+  gap: 6px;
   padding: 4px;
   border-radius: 14px;
   background: var(--card-soft);
 }
 
 .performance-view__tab {
-  height: 36px;
+  height: 38px;
   border: none;
   border-radius: 11px;
   background: transparent;
@@ -5092,12 +5098,23 @@ button {
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.performance-view__tab:hover:not(.is-active) {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
 }
 
 .performance-view__tab.is-active {
-  background: var(--card);
-  color: var(--ink);
-  box-shadow: 0 4px 12px rgba(27, 30, 66, 0.08);
+  background: #1b1e42;
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(27, 30, 66, 0.18);
+}
+
+[data-theme="dark"] .performance-view__tab.is-active {
+  background: #3eb2ed;
+  color: #0b1220;
 }
 
 .performance-view__section {
