@@ -4011,52 +4011,51 @@ function HomeDashboard({ onSignOut, now }) {
         </div>
       ) : (
       <>
+      <div className="home-topbar">
+        <img
+          src={darkMode ? logo : colorLogo}
+          alt="SOE"
+          className="home-brand-logo"
+        />
+        <div className="home-topbar__actions">
+          <button
+            type="button"
+            onClick={() => setDarkMode((prev) => !prev)}
+            className="pressable theme-toggle"
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {darkMode ? (
+              <Sun className="w-4 h-4" strokeWidth={2.2} />
+            ) : (
+              <Moon className="w-4 h-4" strokeWidth={2.2} />
+            )}
+          </button>
+          <button
+            onClick={onSignOut}
+            className="pressable theme-toggle overflow-hidden"
+            style={{ padding: 3 }}
+            aria-label="Profile"
+          >
+            <img
+              src={profile}
+              alt="Nisal"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                borderRadius: 12,
+                display: 'block',
+              }}
+            />
+          </button>
+        </div>
+      </div>
+
       <div className="home-scroll scroll-hide">
         <div className="home-scroll__stack">
-        <div className="fade-up flex items-start justify-between gap-3" style={{ marginBottom: 0 }}>
-          <div className="min-w-0">
-            <img
-              src={darkMode ? logo : colorLogo}
-              alt="SOE"
-              className="home-brand-logo"
-            />
-            <div className="mt-1.5 text-[15px] font-medium" style={{ color: 'var(--muted)' }}>
-              {greeting},{' '}
-              <span className="font-semibold" style={{ color: 'var(--ink)' }}>Nisal</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => setDarkMode((prev) => !prev)}
-              className="pressable theme-toggle"
-              aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {darkMode ? (
-                <Sun className="w-4 h-4" strokeWidth={2.2} />
-              ) : (
-                <Moon className="w-4 h-4" strokeWidth={2.2} />
-              )}
-            </button>
-            <button
-              onClick={onSignOut}
-              className="pressable theme-toggle overflow-hidden"
-              style={{ padding: 3 }}
-              aria-label="Profile"
-            >
-              <img
-                src={profile}
-                alt="Nisal"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  borderRadius: 12,
-                  display: 'block',
-                }}
-              />
-            </button>
-          </div>
+        <div className="home-greeting fade-up">
+          {greeting},{' '}
+          <span className="home-greeting__name">Nisal</span>
         </div>
 
         <div
