@@ -630,7 +630,7 @@ const WFH_RECORDS = [
   },
 ];
 
-const JOURNAL_PAGE_SIZE = 6;
+const JOURNAL_PAGE_SIZE = 10;
 
 const JOURNAL_SEED = [
   {
@@ -1662,7 +1662,7 @@ function HomeDashboard({ onSignOut, now }) {
   const [journalPage, setJournalPage] = useState(1);
   const [journalTasks, setJournalTasks] = useState(JOURNAL_SEED);
   const [runningTaskId, setRunningTaskId] = useState('j3');
-  const [expandedJournalIds, setExpandedJournalIds] = useState([]);
+  const [selectedJournalTaskId, setSelectedJournalTaskId] = useState(null);
   const [journalTimeDrafts, setJournalTimeDrafts] = useState({});
   const [addType, setAddType] = useState('task');
   const [taskWizardStep, setTaskWizardStep] = useState(1);
@@ -1783,7 +1783,7 @@ function HomeDashboard({ onSignOut, now }) {
     setJournalTab('day');
     setJournalDayOffset(0);
     setJournalPage(1);
-    setExpandedJournalIds([]);
+    setSelectedJournalTaskId(null);
   };
 
   const closeJournal = () => {
@@ -2181,6 +2181,9 @@ function HomeDashboard({ onSignOut, now }) {
       journalTab === 'day' ? task.tab === 'day' : task.tab === 'delegated'
     ))
     : [];
+  const selectedJournalTask = selectedJournalTaskId
+    ? journalTasks.find((task) => task.id === selectedJournalTaskId) || null
+    : null;
   const journalTotalPages = Math.max(1, Math.ceil(filteredJournalTasks.length / JOURNAL_PAGE_SIZE));
   const safeJournalPage = Math.min(journalPage, journalTotalPages);
   const journalPageStart = (safeJournalPage - 1) * JOURNAL_PAGE_SIZE;
@@ -2222,7 +2225,7 @@ function HomeDashboard({ onSignOut, now }) {
   const setJournalTabSafe = (tab) => {
     setJournalTab(tab);
     setJournalPage(1);
-    setExpandedJournalIds([]);
+    setSelectedJournalTaskId(null);
   };
 
   const updateJournalNote = (taskId, note) => {
@@ -2231,12 +2234,12 @@ function HomeDashboard({ onSignOut, now }) {
     )));
   };
 
-  const toggleJournalExpand = (taskId) => {
-    setExpandedJournalIds((prev) => (
-      prev.includes(taskId)
-        ? prev.filter((id) => id !== taskId)
-        : [...prev, taskId]
-    ));
+  const openJournalTask = (taskId) => {
+    setSelectedJournalTaskId(taskId);
+  };
+
+  const closeJournalTask = () => {
+    setSelectedJournalTaskId(null);
   };
 
   const startJournalTimer = (taskId) => {
@@ -3283,7 +3286,7 @@ function HomeDashboard({ onSignOut, now }) {
           </div>
         </div>
       ) : showJournal ? (
-        <div className="journal-view fade-up">
+        <div className={`journal-view fade-up ${selectedJournalTask ? 'is-task-modal-open' : ''}`}>
           <div className="journal-view__top">
             <div className="journal-view__header">
               <button
@@ -3337,7 +3340,7 @@ function HomeDashboard({ onSignOut, now }) {
                   onClick={() => {
                     setJournalDayOffset((prev) => prev - 1);
                     setJournalPage(1);
-                    setExpandedJournalIds([]);
+                    setSelectedJournalTaskId(null);
                   }}
                   aria-label="Previous day"
                 >
@@ -3349,7 +3352,7 @@ function HomeDashboard({ onSignOut, now }) {
                   onClick={() => {
                     setJournalDayOffset((prev) => prev + 1);
                     setJournalPage(1);
-                    setExpandedJournalIds([]);
+                    setSelectedJournalTaskId(null);
                   }}
                   aria-label="Next day"
                 >
@@ -3367,7 +3370,7 @@ function HomeDashboard({ onSignOut, now }) {
                   onClick={() => {
                     setJournalDayOffset(0);
                     setJournalPage(1);
-                    setExpandedJournalIds([]);
+                    setSelectedJournalTaskId(null);
                   }}
                 >
                   Today
@@ -3379,7 +3382,7 @@ function HomeDashboard({ onSignOut, now }) {
                   onClick={() => {
                     setJournalDayOffset(0);
                     setJournalPage(1);
-                    setExpandedJournalIds([]);
+                    setSelectedJournalTaskId(null);
                   }}
                 >
                   <Calendar className="w-4 h-4" strokeWidth={2.2} />
@@ -3405,22 +3408,25 @@ function HomeDashboard({ onSignOut, now }) {
               <>
                 {visibleJournalTasks.map((task) => {
                   const running = runningTaskId === task.id;
-                  const expanded = expandedJournalIds.includes(task.id);
                   return (
                     <article
                       key={task.id}
-                      className={`journal-card journal-card--${task.accent} ${expanded ? 'is-expanded' : 'is-collapsed'}`}
+                      className={`journal-card journal-card--${task.accent} is-collapsed journal-card--clickable`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openJournalTask(task.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          openJournalTask(task.id);
+                        }
+                      }}
+                      aria-label={`Open details for ${task.title}`}
                     >
                       <div className="journal-card__rail" />
                       <div className="journal-card__body">
                         <div className="journal-card__header">
-                          <button
-                            type="button"
-                            className="journal-card__lead"
-                            onClick={() => toggleJournalExpand(task.id)}
-                            aria-expanded={expanded}
-                            aria-label={expanded ? `Collapse ${task.title}` : `Expand ${task.title}`}
-                          >
+                          <div className="journal-card__lead" aria-hidden="true">
                             <span
                               className={`journal-card__status journal-card__status--${running ? 'active' : task.status}`}
                               title={running ? 'active' : task.status}
@@ -3433,23 +3439,14 @@ function HomeDashboard({ onSignOut, now }) {
                                 <Hourglass className="w-3 h-3" strokeWidth={2.2} />
                               )}
                             </span>
-                            <ChevronDown
-                              className={`journal-card__chevron ${expanded ? 'is-open' : ''}`}
-                              strokeWidth={2.4}
-                            />
-                          </button>
+                          </div>
 
                           <span className="journal-card__sep" aria-hidden="true" />
 
                           <div className="journal-card__detail-row">
-                            <button
-                              type="button"
-                              className="journal-card__main"
-                              onClick={() => toggleJournalExpand(task.id)}
-                              aria-expanded={expanded}
-                            >
+                            <div className="journal-card__main">
                               <h2 className="journal-card__title">{task.title}</h2>
-                            </button>
+                            </div>
 
                             <div
                               className={[
@@ -3457,6 +3454,8 @@ function HomeDashboard({ onSignOut, now }) {
                                 running ? 'is-running' : '',
                                 task.status === 'done' ? 'is-locked' : '',
                               ].filter(Boolean).join(' ')}
+                              onClick={(e) => e.stopPropagation()}
+                              onKeyDown={(e) => e.stopPropagation()}
                             >
                               {running ? (
                                 <>
@@ -3529,46 +3528,6 @@ function HomeDashboard({ onSignOut, now }) {
                             </div>
                           </div>
                         </div>
-
-                        {expanded && (
-                          <div className="journal-card__details">
-                            <div className="journal-card__client-line">
-                              <span>{task.client}</span>
-                              <span className="journal-card__dot">·</span>
-                              <span className="journal-card__hrs">{task.workload}h</span>
-                            </div>
-                            <div className="journal-card__ref">{task.salesRef}</div>
-                            <div className="journal-card__meta">
-                              <span>Assigned by: {task.assignedBy}</span>
-                              <span className="journal-card__dot">·</span>
-                              <span>Due: {task.due}</span>
-                            </div>
-                            <div className="journal-card__dept">{task.department}</div>
-                            <p className="journal-card__desc">{task.description}</p>
-
-                            <label className="journal-card__note">
-                              <span className="journal-card__note-label">Note</span>
-                              <input
-                                className="journal-card__note-input"
-                                placeholder="Add note..."
-                                value={task.note}
-                                onChange={(e) => updateJournalNote(task.id, e.target.value)}
-                              />
-                            </label>
-
-                            <div className="journal-card__actions">
-                              <button type="button" className="journal-card__action" aria-label="View task">
-                                <Eye className="w-4 h-4" strokeWidth={2.1} />
-                              </button>
-                              <button type="button" className="journal-card__action" aria-label="Edit task">
-                                <Pencil className="w-3.5 h-3.5" strokeWidth={2.1} />
-                              </button>
-                              <button type="button" className="journal-card__action" aria-label="Sync task">
-                                <RefreshCw className="w-3.5 h-3.5" strokeWidth={2.1} />
-                              </button>
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </article>
                   );
@@ -3604,6 +3563,117 @@ function HomeDashboard({ onSignOut, now }) {
               </>
             )}
           </div>
+
+          {selectedJournalTask && (
+            <div
+              className="journal-task-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="journal-task-modal-title"
+            >
+              <button
+                type="button"
+                className="journal-task-modal__backdrop"
+                aria-label="Close task details"
+                onClick={closeJournalTask}
+              />
+              <div
+                className={`journal-task-modal__sheet journal-task-modal__sheet--${selectedJournalTask.accent} fade-up`}
+              >
+                <div className="journal-task-modal__header">
+                  <div className="min-w-0 flex-1">
+                    <span
+                      className={`journal-task-modal__badge journal-task-modal__badge--${
+                        runningTaskId === selectedJournalTask.id ? 'active' : selectedJournalTask.status
+                      }`}
+                    >
+                      {selectedJournalTask.status === 'done' && runningTaskId !== selectedJournalTask.id
+                        ? 'Completed'
+                        : runningTaskId === selectedJournalTask.id || selectedJournalTask.status === 'active'
+                          ? 'In progress'
+                          : 'Pending'}
+                    </span>
+                    <h2 id="journal-task-modal-title" className="journal-task-modal__title">
+                      {selectedJournalTask.title}
+                    </h2>
+                    <p className="journal-task-modal__subtitle">
+                      {selectedJournalTask.client}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="journal-task-modal__close pressable"
+                    onClick={closeJournalTask}
+                    aria-label="Close task details"
+                  >
+                    <X className="w-4 h-4" strokeWidth={2.3} />
+                  </button>
+                </div>
+
+                <div className="journal-task-modal__body scroll-hide">
+                  <div className="journal-task-modal__metric">
+                    <span className="journal-task-modal__metric-label">Time logged</span>
+                    <span className="journal-task-modal__metric-value tabular-nums">
+                      {runningTaskId === selectedJournalTask.id
+                        ? formatJournalElapsed(selectedJournalTask.seconds)
+                        : formatJournalHours(selectedJournalTask.seconds)}
+                    </span>
+                  </div>
+
+                  <div className="journal-task-modal__grid">
+                    <div className="journal-task-modal__field">
+                      <span className="journal-task-modal__label">Sales Ref</span>
+                      <span className="journal-task-modal__value">{selectedJournalTask.salesRef}</span>
+                    </div>
+                    <div className="journal-task-modal__field">
+                      <span className="journal-task-modal__label">Due</span>
+                      <span className="journal-task-modal__value">{selectedJournalTask.due}</span>
+                    </div>
+                    <div className="journal-task-modal__field">
+                      <span className="journal-task-modal__label">Assigned by</span>
+                      <span className="journal-task-modal__value">{selectedJournalTask.assignedBy}</span>
+                    </div>
+                    <div className="journal-task-modal__field">
+                      <span className="journal-task-modal__label">Department</span>
+                      <span className="journal-task-modal__value">{selectedJournalTask.department}</span>
+                    </div>
+                  </div>
+
+                  <div className="journal-task-modal__panel">
+                    <span className="journal-task-modal__label">Description</span>
+                    <p className="journal-task-modal__desc">
+                      {selectedJournalTask.description || 'No description provided.'}
+                    </p>
+                  </div>
+
+                  <label className="journal-task-modal__note">
+                    <span className="journal-task-modal__label">Note</span>
+                    <input
+                      className="journal-task-modal__note-input"
+                      placeholder="Add a note for this task..."
+                      value={selectedJournalTask.note}
+                      onChange={(e) => updateJournalNote(selectedJournalTask.id, e.target.value)}
+                    />
+                  </label>
+                </div>
+
+                <div className="journal-task-modal__footer">
+                  <button type="button" className="journal-task-modal__action pressable">
+                    <Eye className="w-4 h-4" strokeWidth={2.1} />
+                    <span>View</span>
+                  </button>
+                  <button type="button" className="journal-task-modal__action pressable">
+                    <Pencil className="w-3.5 h-3.5" strokeWidth={2.1} />
+                    <span>Edit</span>
+                  </button>
+                  <button type="button" className="journal-task-modal__action pressable">
+                    <RefreshCw className="w-3.5 h-3.5" strokeWidth={2.1} />
+                    <span>Sync</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       ) : showOpportunities ? (
         <div className="leads-view fade-up">

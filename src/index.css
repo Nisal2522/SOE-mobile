@@ -1688,10 +1688,12 @@ button {
 
 /* Day Journal */
 .journal-view {
+  position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   background:
     radial-gradient(circle at 100% 0%, rgba(62, 178, 237, 0.14), transparent 42%),
     radial-gradient(circle at 0% 20%, rgba(27, 30, 66, 0.06), transparent 36%),
@@ -1727,7 +1729,7 @@ button {
 
 .journal-view__title {
   margin: 0;
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--ink);
@@ -2246,6 +2248,15 @@ button {
   justify-content: flex-start;
 }
 
+.journal-card--clickable {
+  cursor: pointer;
+}
+
+.journal-card--clickable:focus-visible {
+  outline: 2px solid #3eb2ed;
+  outline-offset: 2px;
+}
+
 .journal-card__lead {
   display: inline-flex;
   align-items: center;
@@ -2258,8 +2269,8 @@ button {
   border: none;
   background: transparent;
   color: inherit;
-  cursor: pointer;
   flex-shrink: 0;
+  pointer-events: none;
 }
 
 .journal-card__sep {
@@ -2288,13 +2299,13 @@ button {
   justify-content: flex-start;
   gap: 8px;
   text-align: left;
-  cursor: pointer;
   padding: 0;
   margin: 0;
   border: none;
   background: transparent;
   color: inherit;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .journal-card.is-collapsed .journal-card__main {
@@ -2732,6 +2743,295 @@ button {
 
 .journal-card__action:hover {
   color: var(--ink);
+}
+
+.journal-view.is-task-modal-open .journal-view__top,
+.journal-view.is-task-modal-open .journal-list {
+  filter: blur(5px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.journal-task-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) 16px max(16px, env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+
+.journal-task-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(15, 18, 36, 0.42);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+
+.journal-task-modal__sheet {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 360px;
+  max-height: min(84dvh, calc(100% - 32px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-radius: 22px;
+  padding: 0;
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 24px 56px rgba(27, 30, 66, 0.28);
+  min-width: 0;
+}
+
+.journal-task-modal__sheet::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #2eb87a;
+}
+
+.journal-task-modal__sheet--orange::before {
+  background: #f0a14a;
+}
+
+.journal-task-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 14px 20px;
+  flex-shrink: 0;
+  min-width: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 7%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--card-soft) 70%, transparent), transparent);
+}
+
+.journal-task-modal__badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.journal-task-modal__badge--done {
+  color: #167a52;
+  background: rgba(46, 184, 122, 0.14);
+}
+
+.journal-task-modal__badge--active {
+  color: #c23b3b;
+  background: rgba(229, 72, 72, 0.12);
+}
+
+.journal-task-modal__badge--pending {
+  color: #b06a1c;
+  background: rgba(240, 161, 74, 0.16);
+}
+
+.journal-task-modal__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.journal-task-modal__subtitle {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.journal-task-modal__close {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-soft);
+  color: var(--ink);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.journal-task-modal__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 18px 8px 20px;
+}
+
+.journal-task-modal__metric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, #1b1e42 6%, var(--card-soft));
+  border: 1px solid color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.journal-task-modal__metric-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.journal-task-modal__metric-value {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #1b1e42;
+}
+
+[data-theme="dark"] .journal-task-modal__metric-value {
+  color: #8eb6ff;
+}
+
+.journal-task-modal__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.journal-task-modal__field,
+.journal-task-modal__panel,
+.journal-task-modal__note {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.journal-task-modal__field {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card-soft);
+}
+
+.journal-task-modal__label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.journal-task-modal__value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.journal-task-modal__panel {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, #3eb2ed 7%, var(--card));
+  border: 1px solid color-mix(in srgb, #3eb2ed 14%, transparent);
+}
+
+.journal-task-modal__desc {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.journal-task-modal__note-input {
+  width: 100%;
+  height: 44px;
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: 12px;
+  padding: 0 14px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.journal-task-modal__note-input::placeholder {
+  color: color-mix(in srgb, var(--muted) 75%, transparent);
+}
+
+.journal-task-modal__note-input:focus {
+  border-color: #3eb2ed;
+  box-shadow: 0 0 0 3px rgba(62, 178, 237, 0.16);
+}
+
+.journal-task-modal__footer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 12px 18px 16px 20px;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 7%, transparent);
+  background: color-mix(in srgb, var(--card-soft) 55%, var(--card));
+}
+
+.journal-task-modal__action {
+  height: 40px;
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.journal-task-modal__action:hover {
+  background: var(--card-soft);
 }
 
 .journal-pagination {
@@ -3218,16 +3518,6 @@ button {
 .leave-view__title-block {
   flex: 1;
   min-width: 0;
-}
-
-.leave-view__title-block .journal-view__title {
-  font-size: 17px;
-  line-height: 1.15;
-}
-
-.leave-view__title-block .journal-view__subtitle {
-  margin-top: 2px;
-  font-size: 11px;
 }
 
 .leave-view__actions {
