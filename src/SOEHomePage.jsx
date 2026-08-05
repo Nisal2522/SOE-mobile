@@ -5707,8 +5707,30 @@ function HomeDashboard({ onSignOut, now }) {
   );
 }
 
+const AUTH_STORAGE_KEY = 'soe.auth.session';
+
+function readStoredAuth() {
+  try {
+    return localStorage.getItem(AUTH_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeStoredAuth(isAuthed) {
+  try {
+    if (isAuthed) {
+      localStorage.setItem(AUTH_STORAGE_KEY, '1');
+    } else {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore storage failures (private mode, quota, etc.)
+  }
+}
+
 export default function SOEHomePage() {
-  const [authed, setAuthed] = useState(false);
+  const [authed, setAuthed] = useState(readStoredAuth);
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -5716,9 +5738,19 @@ export default function SOEHomePage() {
     return () => clearInterval(id);
   }, []);
 
+  const handleLogin = () => {
+    writeStoredAuth(true);
+    setAuthed(true);
+  };
+
+  const handleSignOut = () => {
+    writeStoredAuth(false);
+    setAuthed(false);
+  };
+
   if (!authed) {
-    return <LoginScreen onLogin={() => setAuthed(true)} now={now} />;
+    return <LoginScreen onLogin={handleLogin} now={now} />;
   }
 
-  return <HomeDashboard onSignOut={() => setAuthed(false)} now={now} />;
+  return <HomeDashboard onSignOut={handleSignOut} now={now} />;
 }
