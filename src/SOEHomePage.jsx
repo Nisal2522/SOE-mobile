@@ -52,6 +52,7 @@ import {
   Search,
   Building2,
   UserPlus,
+  Mail,
 } from 'lucide-react';
 import logo from './assets/logo.png';
 import colorLogo from './assets/color.png';
@@ -1622,6 +1623,8 @@ function HomeDashboard({ onSignOut, now }) {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showLeave, setShowLeave] = useState(false);
   const [showPerformance, setShowPerformance] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [profilePhotoOpen, setProfilePhotoOpen] = useState(false);
   const [perfTab, setPerfTab] = useState('overview');
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestType, setRequestType] = useState('');
@@ -1774,6 +1777,7 @@ function HomeDashboard({ onSignOut, now }) {
     setShowCalendar(false);
     setShowLeave(false);
     setShowPerformance(false);
+    setShowProfile(false);
     setShowLeads(false);
     setShowOpportunities(false);
     setShowNotifications(false);
@@ -1796,6 +1800,7 @@ function HomeDashboard({ onSignOut, now }) {
     setShowCalendar(false);
     setShowLeave(false);
     setShowPerformance(false);
+    setShowProfile(false);
     setShowOpportunities(false);
     setShowNotifications(false);
     setActiveCalendarDoc(null);
@@ -1817,6 +1822,7 @@ function HomeDashboard({ onSignOut, now }) {
     setShowCalendar(false);
     setShowLeave(false);
     setShowPerformance(false);
+    setShowProfile(false);
     setShowNotifications(false);
     setActiveCalendarDoc(null);
     setShowOpportunities(true);
@@ -1838,6 +1844,7 @@ function HomeDashboard({ onSignOut, now }) {
     setShowCalendar(false);
     setShowLeave(false);
     setShowPerformance(false);
+    setShowProfile(false);
     setActiveCalendarDoc(null);
     setShowNotifications(true);
     setActiveTab('notifications');
@@ -1861,6 +1868,7 @@ function HomeDashboard({ onSignOut, now }) {
     setShowNotifications(false);
     setShowLeave(false);
     setShowPerformance(false);
+    setShowProfile(false);
     setActiveCalendarDoc(null);
     setShowCalendar(true);
     setActiveTab('home');
@@ -1881,6 +1889,7 @@ function HomeDashboard({ onSignOut, now }) {
     setShowNotifications(false);
     setShowCalendar(false);
     setShowPerformance(false);
+    setShowProfile(false);
     setActiveCalendarDoc(null);
     setShowLeave(true);
     setLeaveTab('leaves');
@@ -1903,6 +1912,7 @@ function HomeDashboard({ onSignOut, now }) {
     setShowNotifications(false);
     setShowCalendar(false);
     setShowLeave(false);
+    setShowProfile(false);
     setActiveCalendarDoc(null);
     setShowPerformance(true);
     setPerfTab('overview');
@@ -1911,6 +1921,26 @@ function HomeDashboard({ onSignOut, now }) {
 
   const closePerformance = () => {
     setShowPerformance(false);
+    setActiveTab('home');
+  };
+
+  const openProfile = () => {
+    setShowJournal(false);
+    setShowLeads(false);
+    setShowOpportunities(false);
+    setShowNotifications(false);
+    setShowCalendar(false);
+    setShowLeave(false);
+    setShowPerformance(false);
+    setActiveCalendarDoc(null);
+    setProfilePhotoOpen(false);
+    setShowProfile(true);
+    setActiveTab('home');
+  };
+
+  const closeProfile = () => {
+    setProfilePhotoOpen(false);
+    setShowProfile(false);
     setActiveTab('home');
   };
 
@@ -4009,6 +4039,97 @@ function HomeDashboard({ onSignOut, now }) {
             )}
           </div>
         </div>
+      ) : showProfile ? (
+        <div className="profile-view fade-up">
+          <div className="profile-view__top">
+            <div className="profile-view__header">
+              <button
+                type="button"
+                className="journal-view__icon-btn pressable"
+                onClick={closeProfile}
+                aria-label="Back to home"
+              >
+                <ChevronLeft className="w-5 h-5" strokeWidth={2.3} />
+              </button>
+              <div className="min-w-0 flex-1">
+                <h1 className="journal-view__title">My Profile</h1>
+                <p className="journal-view__subtitle">Account & details</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="profile-view__scroll scroll-hide">
+            <div className="profile-view__hero">
+              <button
+                type="button"
+                className="profile-view__avatar pressable"
+                onClick={() => setProfilePhotoOpen(true)}
+                aria-label="View profile photo"
+              >
+                <img src={profile} alt="Nisal Amarasekara" />
+              </button>
+              <h2 className="profile-view__name">
+                Nisal Amarasekara <span aria-hidden="true">🇱🇰</span>
+              </h2>
+              <p className="profile-view__dept">IT Department</p>
+              <p className="profile-view__roles">Contractor, Developer</p>
+              <a className="profile-view__email" href="mailto:namarasekara@pcugroup.com">
+                <Mail className="w-3.5 h-3.5" strokeWidth={2.2} aria-hidden="true" />
+                namarasekara@pcugroup.com
+              </a>
+            </div>
+
+            <div className="profile-view__card">
+              <div className="profile-view__row">
+                <span className="profile-view__label">Years in Control Union</span>
+                <span className="profile-view__value">3 years 4 months</span>
+              </div>
+            </div>
+
+            <div className="profile-view__card">
+              <div className="profile-view__row">
+                <span className="profile-view__label">Emergency Contact</span>
+                <span className="profile-view__value">+94 77 123 4567</span>
+              </div>
+              <div className="profile-view__divider" />
+              <div className="profile-view__row">
+                <span className="profile-view__label">Highest Education</span>
+                <span className="profile-view__value">BSc in IT</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="profile-view__logout pressable"
+              onClick={onSignOut}
+            >
+              <LogOut className="w-4 h-4" strokeWidth={2.2} />
+              Logout
+            </button>
+          </div>
+
+          {profilePhotoOpen && (
+            <div className="profile-photo-modal" role="dialog" aria-modal="true" aria-label="Profile photo">
+              <button
+                type="button"
+                className="profile-photo-modal__backdrop"
+                aria-label="Close photo"
+                onClick={() => setProfilePhotoOpen(false)}
+              />
+              <div className="profile-photo-modal__sheet fade-up">
+                <button
+                  type="button"
+                  className="profile-photo-modal__close pressable"
+                  onClick={() => setProfilePhotoOpen(false)}
+                  aria-label="Close photo"
+                >
+                  <X className="w-5 h-5" strokeWidth={2.3} />
+                </button>
+                <img src={profile} alt="Nisal Amarasekara" className="profile-photo-modal__img" />
+              </div>
+            </div>
+          )}
+        </div>
       ) : (
       <>
       <div className="home-topbar">
@@ -4031,10 +4152,11 @@ function HomeDashboard({ onSignOut, now }) {
             )}
           </button>
           <button
-            onClick={onSignOut}
+            type="button"
+            onClick={openProfile}
             className="pressable theme-toggle overflow-hidden"
             style={{ padding: 3 }}
-            aria-label="Profile"
+            aria-label="Open profile"
           >
             <img
               src={profile}
@@ -4268,7 +4390,7 @@ function HomeDashboard({ onSignOut, now }) {
       </>
       )}
 
-      {!activeCalendarDoc && !showCalendar && !showPerformance && !showLeave && (
+      {!activeCalendarDoc && !showCalendar && !showPerformance && !showLeave && !showProfile && (
       <div className="home-bottom-nav">
         <div className="glass-strong home-bottom-nav__bar">
           {NAV_ITEMS.map((item) => {
@@ -4303,6 +4425,8 @@ function HomeDashboard({ onSignOut, now }) {
                     setShowCalendar(false);
                     setShowLeave(false);
                     setShowPerformance(false);
+                    setShowProfile(false);
+                    setProfilePhotoOpen(false);
                     setActiveCalendarDoc(null);
                   }
                   setActiveTab(item.key);

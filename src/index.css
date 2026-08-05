@@ -240,6 +240,218 @@ button {
   color: var(--ink);
 }
 
+/* My Profile */
+.profile-view {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(62, 178, 237, 0.1), transparent 42%),
+    radial-gradient(circle at 0% 22%, rgba(27, 30, 66, 0.04), transparent 36%),
+    var(--bg);
+}
+
+.profile-view__top {
+  flex-shrink: 0;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 6%, transparent);
+  background: color-mix(in srgb, var(--glass-strong) 88%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.profile-view__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-view__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 22px 18px max(28px, env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-view__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  padding: 8px 8px 10px;
+}
+
+.profile-view__avatar {
+  width: 108px;
+  height: 108px;
+  border-radius: 999px;
+  padding: 0;
+  border: 3px solid color-mix(in srgb, var(--card) 90%, #fff);
+  background: var(--card-soft);
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(27, 30, 66, 0.12);
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.profile-view__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-view__name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.profile-view__dept,
+.profile-view__roles {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.profile-view__email {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.profile-view__card {
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: 18px;
+  padding: 4px 16px;
+  box-shadow: 0 8px 22px rgba(27, 30, 66, 0.05);
+}
+
+.profile-view__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 0;
+}
+
+.profile-view__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.profile-view__value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: right;
+}
+
+.profile-view__divider {
+  height: 1px;
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.profile-view__logout {
+  margin-top: 8px;
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #1b1e42;
+  color: #fff;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(27, 30, 66, 0.2);
+}
+
+[data-theme="dark"] .profile-view__logout {
+  background: #8eb6ff;
+  color: #0f1224;
+  box-shadow: 0 10px 24px rgba(142, 182, 255, 0.22);
+}
+
+.profile-photo-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.profile-photo-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgba(15, 18, 36, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  cursor: pointer;
+}
+
+.profile-photo-modal__sheet {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 320px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-photo-modal__close {
+  position: absolute;
+  top: -44px;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.profile-photo-modal__img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 24px;
+  object-fit: cover;
+  display: block;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+}
+
 .home-scroll {
   flex: 1;
   min-height: 0;
