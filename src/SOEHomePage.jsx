@@ -3465,20 +3465,6 @@ function HomeDashboard({ onSignOut, now }) {
                           <div className="journal-card__detail-row">
                             <div className="journal-card__main">
                               <h2 className="journal-card__title">{task.title}</h2>
-                              <div className="journal-card__meta">
-                                <span className="journal-card__meta-item">
-                                  <span className="journal-card__meta-label">Client</span>
-                                  <span className="journal-card__meta-value">{task.client}</span>
-                                </span>
-                                <span className="journal-card__meta-item">
-                                  <span className="journal-card__meta-label">Sales Ref</span>
-                                  <span className="journal-card__meta-value">{task.salesRef}</span>
-                                </span>
-                                <span className="journal-card__meta-item">
-                                  <span className="journal-card__meta-label">Due</span>
-                                  <span className="journal-card__meta-value">{task.due}</span>
-                                </span>
-                              </div>
                             </div>
 
                             <div
@@ -3560,6 +3546,21 @@ function HomeDashboard({ onSignOut, now }) {
                               )}
                             </div>
                           </div>
+                        </div>
+
+                        <div className="journal-card__quickmeta">
+                          <span className="journal-card__quickmeta-item">
+                            <span className="journal-card__quickmeta-label">Client</span>
+                            <span className="journal-card__quickmeta-value">{task.client}</span>
+                          </span>
+                          <span className="journal-card__quickmeta-item">
+                            <span className="journal-card__quickmeta-label">Sales Ref</span>
+                            <span className="journal-card__quickmeta-value">{task.salesRef}</span>
+                          </span>
+                          <span className="journal-card__quickmeta-item">
+                            <span className="journal-card__quickmeta-label">Due</span>
+                            <span className="journal-card__quickmeta-value">{task.due}</span>
+                          </span>
                         </div>
                       </div>
                     </article>
