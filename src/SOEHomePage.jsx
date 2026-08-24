@@ -32,6 +32,7 @@ import {
   ChevronLeft,
   Play,
   Pause,
+  Square,
   Eye,
   Pencil,
   RefreshCw,
@@ -2310,6 +2311,18 @@ function HomeDashboard({ onSignOut, now }) {
     )));
   };
 
+  const deleteJournalTask = (taskId) => {
+    setJournalTasks((prev) => prev.filter((task) => task.id !== taskId));
+    setRunningTaskId((prev) => (prev === taskId ? null : prev));
+    setSelectedJournalTaskId((prev) => (prev === taskId ? null : prev));
+    setJournalTimeDrafts((prev) => {
+      if (!(taskId in prev)) return prev;
+      const next = { ...prev };
+      delete next[taskId];
+      return next;
+    });
+  };
+
   const resetJournalTimer = (taskId) => {
     setRunningTaskId((prev) => (prev === taskId ? null : prev));
     setJournalTimeDrafts((prev) => ({ ...prev, [taskId]: '0' }));
@@ -3495,6 +3508,24 @@ function HomeDashboard({ onSignOut, now }) {
                                     >
                                       <Pause className="w-3.5 h-3.5" strokeWidth={2.4} />
                                     </button>
+                                    <button
+                                      type="button"
+                                      className="journal-timer__pause journal-timer__stop"
+                                      onClick={() => stopJournalTimer(task.id)}
+                                      aria-label="Stop and complete task"
+                                      title="Stop"
+                                    >
+                                      <Square className="w-3.5 h-3.5" strokeWidth={2.4} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="journal-timer__pause journal-timer__cancel"
+                                      onClick={() => resetJournalTimer(task.id)}
+                                      aria-label="Cancel and reset timer"
+                                      title="Cancel"
+                                    >
+                                      <X className="w-3.5 h-3.5" strokeWidth={2.4} />
+                                    </button>
                                   </div>
                                 </>
                               ) : (
@@ -3561,6 +3592,37 @@ function HomeDashboard({ onSignOut, now }) {
                             <span className="journal-card__quickmeta-label">Due</span>
                             <span className="journal-card__quickmeta-value">{task.due}</span>
                           </span>
+                        </div>
+
+                        <div
+                          className="journal-card__actions"
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            type="button"
+                            className="journal-card__action"
+                            onClick={() => openJournalTask(task.id)}
+                            aria-label={`Edit ${task.title}`}
+                            title="Edit"
+                          >
+                            <Pencil className="w-3.5 h-3.5" strokeWidth={2.2} />
+                            <span>Edit</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="journal-card__action journal-card__action--delete"
+                            onClick={() => {
+                              if (window.confirm(`Delete "${task.title}"? This can't be undone.`)) {
+                                deleteJournalTask(task.id);
+                              }
+                            }}
+                            aria-label={`Delete ${task.title}`}
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" strokeWidth={2.2} />
+                            <span>Delete</span>
+                          </button>
                         </div>
                       </div>
                     </article>

@@ -2925,6 +2925,26 @@ button {
   border-color: rgba(255, 255, 255, 0.14);
 }
 
+.journal-timer__stop {
+  color: #1b8fbf;
+  background: rgba(62, 178, 237, 0.14);
+  border-color: rgba(62, 178, 237, 0.35);
+}
+
+.journal-timer__stop:hover {
+  background: rgba(62, 178, 237, 0.24);
+}
+
+.journal-timer__cancel {
+  color: #d0392f;
+  background: rgba(224, 63, 51, 0.12);
+  border-color: rgba(224, 63, 51, 0.32);
+}
+
+.journal-timer__cancel:hover {
+  background: rgba(224, 63, 51, 0.22);
+}
+
 .journal-timer__clock-btn {
   display: inline-flex;
   align-items: center;
@@ -2989,8 +3009,7 @@ button {
   gap: 3px;
 }
 
-.journal-timer__play,
-.journal-card__action {
+.journal-timer__play {
   width: 28px;
   height: 28px;
   border-radius: 0;
@@ -2998,11 +3017,6 @@ button {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--ink);
-  background: var(--card);
-}
-
-.journal-timer__play {
   background: #1b1e42;
   color: #fff;
 }
@@ -3013,20 +3027,44 @@ button {
 }
 
 .journal-card__actions {
-  margin-top: 10px;
-  display: inline-flex;
+  margin-top: 8px;
+  padding-left: 22px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 .journal-card__action {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
   background: var(--card-soft);
   color: var(--muted);
 }
 
 .journal-card__action:hover {
   color: var(--ink);
+}
+
+.journal-card__action--delete {
+  color: #d0392f;
+  border-color: rgba(224, 63, 51, 0.3);
+  background: rgba(224, 63, 51, 0.08);
+}
+
+.journal-card__action--delete:hover {
+  color: #b3271f;
+  background: rgba(224, 63, 51, 0.16);
 }
 
 .journal-view.is-task-modal-open .journal-view__top,
