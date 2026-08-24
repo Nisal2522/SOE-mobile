@@ -48,7 +48,6 @@ import {
   TrendingDown,
   Activity,
   Upload,
-  Paperclip,
   Search,
   Building2,
   UserPlus,
@@ -181,6 +180,12 @@ const NEWS_SLIDES = [
 
 const FEATURES = [
   {
+    key: 'journal',
+    label: 'Day Journal',
+    sub: 'Capture today',
+    icon: BookOpen,
+  },
+  {
     key: 'calendar',
     label: 'Calendar',
     icon: Calendar,
@@ -200,12 +205,6 @@ const FEATURES = [
     label: 'WFH & Leave',
     sub: 'Request time off',
     icon: House,
-  },
-  {
-    key: 'journal',
-    label: 'Day Journal',
-    sub: 'Capture today',
-    icon: BookOpen,
   },
   {
     key: 'news',
@@ -1669,7 +1668,6 @@ function HomeDashboard({ onSignOut, now }) {
   const [journalTimeDrafts, setJournalTimeDrafts] = useState({});
   const [addType, setAddType] = useState('task');
   const [taskWizardStep, setTaskWizardStep] = useState(1);
-  const [taskAttachments, setTaskAttachments] = useState([]);
   const [assigneeQuery, setAssigneeQuery] = useState('');
   const [addForm, setAddForm] = useState({
     title: '',
@@ -1706,12 +1704,13 @@ function HomeDashboard({ onSignOut, now }) {
     arCompletedDate: '',
     arApprovalRequestedDate: '',
     propertyRemarks: '',
+    visitingCardFront: null,
+    visitingCardBack: null,
   });
 
   const TASK_WIZARD_STEPS = [
     { id: 1, label: 'Task Details' },
     { id: 2, label: 'Property Details' },
-    { id: 3, label: 'Attachments' },
   ];
   const [workLocation, setWorkLocation] = useState('Colombo Head Office');
   const [clockDate, setClockDate] = useState('');
@@ -2400,7 +2399,6 @@ function HomeDashboard({ onSignOut, now }) {
     const nextType = ['task', 'lead', 'opportunity'].includes(type) ? type : 'task';
     setAddType(nextType);
     setTaskWizardStep(1);
-    setTaskAttachments([]);
     setAddForm({
       title: 'Application Review',
       description: '',
@@ -2436,6 +2434,8 @@ function HomeDashboard({ onSignOut, now }) {
       arCompletedDate: '',
       arApprovalRequestedDate: '',
       propertyRemarks: '',
+      visitingCardFront: null,
+      visitingCardBack: null,
     });
     setAssigneeQuery('');
     setSelectedServices([]);
@@ -2600,17 +2600,22 @@ function HomeDashboard({ onSignOut, now }) {
     setAddForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const captureVisitingCardImage = (field, file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => updateAddForm(field, reader.result);
+    reader.readAsDataURL(file);
+  };
+
   const closeAddModal = () => {
     setShowAddModal(false);
     setTaskWizardStep(1);
-    setTaskAttachments([]);
     setAssigneeQuery('');
   };
 
   const handleAddTypeChange = (type) => {
     setAddType(type);
     setTaskWizardStep(1);
-    setTaskAttachments([]);
     setAssigneeQuery('');
   };
 
@@ -2619,22 +2624,6 @@ function HomeDashboard({ onSignOut, now }) {
     if (!name) return;
     updateAddForm('assignTo', name);
     setAssigneeQuery('');
-  };
-
-  const addTaskAttachment = (fileList) => {
-    const files = Array.from(fileList || []);
-    if (files.length === 0) return;
-    setTaskAttachments((prev) => [
-      ...prev,
-      ...files.map((file) => ({
-        id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        name: file.name,
-      })),
-    ]);
-  };
-
-  const removeTaskAttachment = (id) => {
-    setTaskAttachments((prev) => prev.filter((file) => file.id !== id));
   };
 
   const createJournalTaskFromForm = (form, extras = {}) => {
@@ -2688,6 +2677,8 @@ function HomeDashboard({ onSignOut, now }) {
         manageOffice: addForm.manageOffice || 'Colombo Head Office',
         leadOwner: addForm.leadOwner.trim() || 'Unassigned',
         services: serviceLabels,
+        visitingCardFront: addForm.visitingCardFront,
+        visitingCardBack: addForm.visitingCardBack,
         status: 'new',
         createdAt: now.toLocaleDateString('en-US', {
           month: 'short',
@@ -2747,9 +2738,7 @@ function HomeDashboard({ onSignOut, now }) {
       return;
     }
 
-    const primary = createJournalTaskFromForm(addForm, {
-      attachments: taskAttachments.map((file) => file.name),
-    });
+    const primary = createJournalTaskFromForm(addForm);
 
     setJournalTasks((prev) => [primary, ...prev]);
     setJournalTab('day');
@@ -2764,11 +2753,11 @@ function HomeDashboard({ onSignOut, now }) {
   };
 
   const goTaskWizardNext = () => {
-    if (taskWizardStep >= 3) {
+    if (taskWizardStep >= 2) {
       submitAddForm();
       return;
     }
-    setTaskWizardStep((prev) => Math.min(3, prev + 1));
+    setTaskWizardStep((prev) => Math.min(2, prev + 1));
   };
 
   const goTaskWizardBack = () => {
@@ -3476,6 +3465,20 @@ function HomeDashboard({ onSignOut, now }) {
                           <div className="journal-card__detail-row">
                             <div className="journal-card__main">
                               <h2 className="journal-card__title">{task.title}</h2>
+                              <div className="journal-card__meta">
+                                <span className="journal-card__meta-item">
+                                  <span className="journal-card__meta-label">Client</span>
+                                  <span className="journal-card__meta-value">{task.client}</span>
+                                </span>
+                                <span className="journal-card__meta-item">
+                                  <span className="journal-card__meta-label">Sales Ref</span>
+                                  <span className="journal-card__meta-value">{task.salesRef}</span>
+                                </span>
+                                <span className="journal-card__meta-item">
+                                  <span className="journal-card__meta-label">Due</span>
+                                  <span className="journal-card__meta-value">{task.due}</span>
+                                </span>
+                              </div>
                             </div>
 
                             <div
@@ -5425,62 +5428,6 @@ function HomeDashboard({ onSignOut, now }) {
                 </div>
               )}
 
-              {addType === 'task' && taskWizardStep === 3 && (
-                <div className="task-form">
-                  <div className="task-form__row">
-                    <label className="task-form__label" htmlFor="task-attachment">
-                      Attachment
-                    </label>
-                    <label className="task-attach__picker pressable" htmlFor="task-attachment">
-                      <Upload className="w-4 h-4" strokeWidth={2.2} />
-                      <span>Choose File</span>
-                      <input
-                        id="task-attachment"
-                        type="file"
-                        multiple
-                        className="task-attach__input"
-                        onChange={(e) => {
-                          addTaskAttachment(e.target.files);
-                          e.target.value = '';
-                        }}
-                      />
-                    </label>
-                    <div className="task-attach__hint">
-                      {taskAttachments.length === 0 ? 'No file chosen' : `${taskAttachments.length} file(s) selected`}
-                    </div>
-                  </div>
-
-                  <div className="task-attach__table" role="table" aria-label="Attachments">
-                    <div className="task-attach__thead" role="row">
-                      <span role="columnheader">File Name</span>
-                      <span role="columnheader">Action</span>
-                    </div>
-                    {taskAttachments.length === 0 ? (
-                      <div className="task-attach__empty" role="row">
-                        No records found
-                      </div>
-                    ) : (
-                      taskAttachments.map((file) => (
-                        <div key={file.id} className="task-attach__row" role="row">
-                          <span className="task-attach__name truncate" role="cell">
-                            <Paperclip className="w-3.5 h-3.5 shrink-0" strokeWidth={2.1} />
-                            {file.name}
-                          </span>
-                          <button
-                            type="button"
-                            className="task-attach__remove pressable"
-                            onClick={() => removeTaskAttachment(file.id)}
-                            aria-label={`Remove ${file.name}`}
-                          >
-                            <Trash2 className="w-4 h-4" strokeWidth={2.1} />
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-
               {addType === 'lead' && (
                 <>
                   <div className="clock-modal__field">
@@ -5553,6 +5500,79 @@ function HomeDashboard({ onSignOut, now }) {
                     />
                   </div>
                   {renderSelectServices()}
+
+                  <div className="visiting-card-section">
+                    <div className="visiting-card-section__heading">Visiting Card</div>
+                    <div className="visiting-card-section__grid">
+                      <div className="visiting-card__field">
+                        <label className="clock-modal__label" htmlFor="visiting-card-front">
+                          Visiting Card Front
+                        </label>
+                        <label className="task-attach__picker pressable" htmlFor="visiting-card-front">
+                          <Upload className="w-4 h-4" strokeWidth={2.2} />
+                          <span>Take / Upload Photo</span>
+                          <input
+                            id="visiting-card-front"
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            className="task-attach__input"
+                            onChange={(e) => {
+                              captureVisitingCardImage('visitingCardFront', e.target.files?.[0]);
+                              e.target.value = '';
+                            }}
+                          />
+                        </label>
+                        {addForm.visitingCardFront && (
+                          <div className="visiting-card__preview">
+                            <img src={addForm.visitingCardFront} alt="Visiting card front preview" />
+                            <button
+                              type="button"
+                              className="visiting-card__remove pressable"
+                              onClick={() => updateAddForm('visitingCardFront', null)}
+                              aria-label="Remove visiting card front image"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" strokeWidth={2.1} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="visiting-card__field">
+                        <label className="clock-modal__label" htmlFor="visiting-card-back">
+                          Visiting Card Back
+                        </label>
+                        <label className="task-attach__picker pressable" htmlFor="visiting-card-back">
+                          <Upload className="w-4 h-4" strokeWidth={2.2} />
+                          <span>Take / Upload Photo</span>
+                          <input
+                            id="visiting-card-back"
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            className="task-attach__input"
+                            onChange={(e) => {
+                              captureVisitingCardImage('visitingCardBack', e.target.files?.[0]);
+                              e.target.value = '';
+                            }}
+                          />
+                        </label>
+                        {addForm.visitingCardBack && (
+                          <div className="visiting-card__preview">
+                            <img src={addForm.visitingCardBack} alt="Visiting card back preview" />
+                            <button
+                              type="button"
+                              className="visiting-card__remove pressable"
+                              onClick={() => updateAddForm('visitingCardBack', null)}
+                              aria-label="Remove visiting card back image"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" strokeWidth={2.1} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </>
               )}
 
@@ -5688,7 +5708,7 @@ function HomeDashboard({ onSignOut, now }) {
                   className="task-wizard__next pressable"
                   onClick={goTaskWizardNext}
                 >
-                  {taskWizardStep === 3 ? 'Create Task' : 'Next'}
+                  {taskWizardStep === 2 ? 'Create Task' : 'Next'}
                 </button>
               </div>
             ) : (
