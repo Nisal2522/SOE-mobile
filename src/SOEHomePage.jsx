@@ -1670,6 +1670,7 @@ function HomeDashboard({ onSignOut, now }) {
   const [addType, setAddType] = useState('task');
   const [taskWizardStep, setTaskWizardStep] = useState(1);
   const [assigneeQuery, setAssigneeQuery] = useState('');
+  const [editingTaskId, setEditingTaskId] = useState(null);
   const [addForm, setAddForm] = useState({
     title: '',
     description: '',
@@ -1707,12 +1708,20 @@ function HomeDashboard({ onSignOut, now }) {
     propertyRemarks: '',
     visitingCardFront: null,
     visitingCardBack: null,
+    nextTasks: [],
   });
 
   const TASK_WIZARD_STEPS = [
     { id: 1, label: 'Task Details' },
     { id: 2, label: 'Property Details' },
+    { id: 3, label: 'Next Task' },
   ];
+
+  const makeEmptyNextTaskRow = () => ({
+    id: `nt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    task: '',
+    assignee: '',
+  });
   const [workLocation, setWorkLocation] = useState('Colombo Head Office');
   const [clockDate, setClockDate] = useState('');
   const [clockTime, setClockTime] = useState('');
@@ -2268,6 +2277,47 @@ function HomeDashboard({ onSignOut, now }) {
     setSelectedJournalTaskId(taskId);
   };
 
+  const openEditTask = (taskId) => {
+    const task = journalTasks.find((item) => item.id === taskId);
+    if (!task) return;
+    let assignDateValue = '';
+    let dueDateObj = null;
+    if (task.due && task.due !== 'TBD') {
+      const parsed = new Date(task.due);
+      if (!Number.isNaN(parsed.getTime())) {
+        assignDateValue = toDateInput(parsed);
+        dueDateObj = parsed;
+      }
+    }
+    const shiftedDate = (days) => {
+      if (!dueDateObj) return '';
+      const d = new Date(dueDateObj);
+      d.setDate(d.getDate() + days);
+      return toDateInput(d);
+    };
+    setAddForm((prev) => ({
+      ...prev,
+      title: task.title || '',
+      client: task.client || '',
+      salesRef: task.salesRef || '',
+      department: task.department || 'IT',
+      assignTo: task.assignedBy || 'Nisal Amarasekara',
+      assignDate: assignDateValue,
+      description: task.description || '',
+      applicationReceivedDate: task.applicationReceivedDate || shiftedDate(-10),
+      arCompletedDate: task.arCompletedDate || shiftedDate(-3),
+      arApprovalRequestedDate: task.arApprovalRequestedDate || shiftedDate(-5),
+      propertyRemarks: task.propertyRemarks || (task.client ? `Reviewed and processed as part of the ${task.client} engagement.` : ''),
+      nextTasks: task.nextTasks && task.nextTasks.length
+        ? task.nextTasks.map((row) => ({ ...row }))
+        : [makeEmptyNextTaskRow(), makeEmptyNextTaskRow()],
+    }));
+    setAddType('task');
+    setEditingTaskId(taskId);
+    setTaskWizardStep(1);
+    setShowAddModal(true);
+  };
+
   const closeJournalTask = () => {
     setSelectedJournalTaskId(null);
   };
@@ -2412,6 +2462,7 @@ function HomeDashboard({ onSignOut, now }) {
     const nextType = ['task', 'lead', 'opportunity'].includes(type) ? type : 'task';
     setAddType(nextType);
     setTaskWizardStep(1);
+    setEditingTaskId(null);
     setAddForm({
       title: 'Application Review',
       description: '',
@@ -2449,6 +2500,7 @@ function HomeDashboard({ onSignOut, now }) {
       propertyRemarks: '',
       visitingCardFront: null,
       visitingCardBack: null,
+      nextTasks: [makeEmptyNextTaskRow(), makeEmptyNextTaskRow()],
     });
     setAssigneeQuery('');
     setSelectedServices([]);
@@ -2613,6 +2665,21 @@ function HomeDashboard({ onSignOut, now }) {
     setAddForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const addNextTaskRow = () => {
+    setAddForm((prev) => ({ ...prev, nextTasks: [...prev.nextTasks, makeEmptyNextTaskRow()] }));
+  };
+
+  const removeNextTaskRow = (rowId) => {
+    setAddForm((prev) => ({ ...prev, nextTasks: prev.nextTasks.filter((row) => row.id !== rowId) }));
+  };
+
+  const updateNextTaskRow = (rowId, field, value) => {
+    setAddForm((prev) => ({
+      ...prev,
+      nextTasks: prev.nextTasks.map((row) => (row.id === rowId ? { ...row, [field]: value } : row)),
+    }));
+  };
+
   const captureVisitingCardImage = (field, file) => {
     if (!file) return;
     const reader = new FileReader();
@@ -2624,12 +2691,14 @@ function HomeDashboard({ onSignOut, now }) {
     setShowAddModal(false);
     setTaskWizardStep(1);
     setAssigneeQuery('');
+    setEditingTaskId(null);
   };
 
   const handleAddTypeChange = (type) => {
     setAddType(type);
     setTaskWizardStep(1);
     setAssigneeQuery('');
+    setEditingTaskId(null);
   };
 
   const addAssigneeFromQuery = () => {
@@ -2668,11 +2737,16 @@ function HomeDashboard({ onSignOut, now }) {
       accent: 'orange',
       seconds: 0,
       tab: 'day',
+      applicationReceivedDate: form.applicationReceivedDate || '',
+      arCompletedDate: form.arCompletedDate || '',
+      arApprovalRequestedDate: form.arApprovalRequestedDate || '',
+      propertyRemarks: form.propertyRemarks || '',
+      nextTasks: (form.nextTasks || []).filter((row) => row.task.trim() || row.assignee.trim()),
       ...extras,
     };
   };
 
-  const submitAddForm = () => {
+  const submitAddForm = ({ complete = false } = {}) => {
     if (addType === 'lead') {
       const serviceLabels = selectedServices.map((id) => {
         const [serviceKey, program] = id.split('::');
@@ -2753,7 +2827,34 @@ function HomeDashboard({ onSignOut, now }) {
 
     const primary = createJournalTaskFromForm(addForm);
 
-    setJournalTasks((prev) => [primary, ...prev]);
+    if (editingTaskId) {
+      setJournalTasks((prev) => prev.map((task) => (
+        task.id === editingTaskId
+          ? {
+            ...task,
+            title: primary.title,
+            client: primary.client,
+            salesRef: primary.salesRef,
+            assignedBy: primary.assignedBy,
+            due: primary.due,
+            department: primary.department,
+            description: primary.description,
+            applicationReceivedDate: primary.applicationReceivedDate,
+            arCompletedDate: primary.arCompletedDate,
+            arApprovalRequestedDate: primary.arApprovalRequestedDate,
+            propertyRemarks: primary.propertyRemarks,
+            note: primary.note,
+            nextTasks: primary.nextTasks,
+            status: complete ? 'done' : task.status,
+          }
+          : task
+      )));
+    } else {
+      setJournalTasks((prev) => [
+        { ...primary, status: complete ? 'done' : primary.status },
+        ...prev,
+      ]);
+    }
     setJournalTab('day');
     setJournalDayOffset(0);
     setJournalPage(1);
@@ -2766,11 +2867,7 @@ function HomeDashboard({ onSignOut, now }) {
   };
 
   const goTaskWizardNext = () => {
-    if (taskWizardStep >= 2) {
-      submitAddForm();
-      return;
-    }
-    setTaskWizardStep((prev) => Math.min(2, prev + 1));
+    setTaskWizardStep((prev) => Math.min(3, prev + 1));
   };
 
   const goTaskWizardBack = () => {
@@ -3602,7 +3699,7 @@ function HomeDashboard({ onSignOut, now }) {
                           <button
                             type="button"
                             className="journal-card__action"
-                            onClick={() => openJournalTask(task.id)}
+                            onClick={() => openEditTask(task.id)}
                             aria-label={`Edit ${task.title}`}
                             title="Edit"
                           >
@@ -5137,7 +5234,7 @@ function HomeDashboard({ onSignOut, now }) {
             <div className="clock-modal__header">
               <div>
                 <div id="add-new-title" className="clock-modal__title">
-                  {addType === 'task' ? 'Add New Task' : 'Add New'}
+                  {addType === 'task' ? (editingTaskId ? 'Edit Task' : 'Add New Task') : 'Add New'}
                 </div>
                 <div className="clock-modal__subtitle">
                   {addType === 'task'
@@ -5155,6 +5252,7 @@ function HomeDashboard({ onSignOut, now }) {
               </button>
             </div>
 
+            {!editingTaskId && (
             <div className="add-type-options" role="radiogroup" aria-label="Record type">
               {(['task', 'lead', 'opportunity']).map((type) => {
                 const meta = addTypeMeta[type];
@@ -5180,6 +5278,7 @@ function HomeDashboard({ onSignOut, now }) {
                 );
               })}
             </div>
+            )}
 
             {addType === 'task' && (
               <div className="task-stepper" aria-label="Create task steps">
@@ -5491,6 +5590,63 @@ function HomeDashboard({ onSignOut, now }) {
                 </div>
               )}
 
+              {addType === 'task' && taskWizardStep === 3 && (
+                <div className="task-form">
+                  <div className="next-task-table" role="table" aria-label="Next tasks">
+                    <div className="next-task-table__thead" role="row">
+                      <span role="columnheader">Task</span>
+                      <span role="columnheader">Assignee</span>
+                      <span role="columnheader">Action</span>
+                    </div>
+                    {addForm.nextTasks.map((row) => (
+                      <div key={row.id} className="next-task-table__row" role="row">
+                        <input
+                          className="next-task-table__input"
+                          placeholder="Select task"
+                          value={row.task}
+                          onChange={(e) => updateNextTaskRow(row.id, 'task', e.target.value)}
+                        />
+                        <input
+                          className="next-task-table__input"
+                          placeholder="Select assignee"
+                          value={row.assignee}
+                          onChange={(e) => updateNextTaskRow(row.id, 'assignee', e.target.value)}
+                        />
+                        <div className="next-task-table__actions">
+                          <button
+                            type="button"
+                            className="next-task-table__icon-btn"
+                            onClick={() => updateNextTaskRow(row.id, 'assignee', 'Nisal Amarasekara')}
+                            aria-label="Assign to me"
+                            title="Assign to me"
+                          >
+                            <UserPlus className="w-3.5 h-3.5" strokeWidth={2.1} />
+                          </button>
+                          <button
+                            type="button"
+                            className="next-task-table__icon-btn next-task-table__icon-btn--delete"
+                            onClick={() => removeNextTaskRow(row.id)}
+                            aria-label="Remove next task row"
+                            title="Remove"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" strokeWidth={2.1} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="next-task-table__add pressable"
+                    onClick={addNextTaskRow}
+                  >
+                    <Plus className="w-4 h-4" strokeWidth={2.3} />
+                    Add Next Task
+                  </button>
+                </div>
+              )}
+
               {addType === 'lead' && (
                 <>
                   <div className="clock-modal__field">
@@ -5760,25 +5916,34 @@ function HomeDashboard({ onSignOut, now }) {
               <div className="task-wizard__footer">
                 <button
                   type="button"
-                  className="task-wizard__back pressable"
-                  onClick={goTaskWizardBack}
-                  disabled={taskWizardStep === 1}
+                  className="task-wizard__update pressable"
+                  onClick={() => submitAddForm({ complete: false })}
                 >
-                  Back
+                  Update Task without complete
                 </button>
-                <button
-                  type="button"
-                  className="task-wizard__next pressable"
-                  onClick={goTaskWizardNext}
-                >
-                  {taskWizardStep === 2 ? 'Create Task' : 'Next'}
-                </button>
+                {taskWizardStep === 3 ? (
+                  <button
+                    type="button"
+                    className="task-wizard__complete pressable"
+                    onClick={() => submitAddForm({ complete: true })}
+                  >
+                    Complete Task
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="task-wizard__next pressable"
+                    onClick={goTaskWizardNext}
+                  >
+                    Next
+                  </button>
+                )}
               </div>
             ) : (
               <button
                 type="button"
                 className="clock-modal__confirm pressable"
-                onClick={submitAddForm}
+                onClick={() => submitAddForm()}
               >
                 Create {addTypeMeta[addType]?.label || 'Record'}
               </button>
