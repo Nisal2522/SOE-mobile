@@ -35,7 +35,6 @@ import {
   Square,
   Eye,
   Pencil,
-  RefreshCw,
   Hourglass,
   CheckCircle2,
   Download,
@@ -53,6 +52,7 @@ import {
   Building2,
   UserPlus,
   Mail,
+  StickyNote,
 } from 'lucide-react';
 import logo from './assets/logo.png';
 import colorLogo from './assets/color.png';
@@ -1665,8 +1665,9 @@ function HomeDashboard({ onSignOut, now }) {
   const [journalPage, setJournalPage] = useState(1);
   const [journalTasks, setJournalTasks] = useState(JOURNAL_SEED);
   const [runningTaskId, setRunningTaskId] = useState('j3');
-  const [selectedJournalTaskId, setSelectedJournalTaskId] = useState(null);
   const [journalTimeDrafts, setJournalTimeDrafts] = useState({});
+  const [noteTaskId, setNoteTaskId] = useState(null);
+  const [noteDraft, setNoteDraft] = useState('');
   const [addType, setAddType] = useState('task');
   const [taskWizardStep, setTaskWizardStep] = useState(1);
   const [assigneeQuery, setAssigneeQuery] = useState('');
@@ -1796,7 +1797,6 @@ function HomeDashboard({ onSignOut, now }) {
     setJournalTab('day');
     setJournalDayOffset(0);
     setJournalPage(1);
-    setSelectedJournalTaskId(null);
   };
 
   const closeJournal = () => {
@@ -2220,9 +2220,6 @@ function HomeDashboard({ onSignOut, now }) {
       journalTab === 'day' ? task.tab === 'day' : task.tab === 'delegated'
     ))
     : [];
-  const selectedJournalTask = selectedJournalTaskId
-    ? journalTasks.find((task) => task.id === selectedJournalTaskId) || null
-    : null;
   const journalTotalPages = Math.max(1, Math.ceil(filteredJournalTasks.length / JOURNAL_PAGE_SIZE));
   const safeJournalPage = Math.min(journalPage, journalTotalPages);
   const journalPageStart = (safeJournalPage - 1) * JOURNAL_PAGE_SIZE;
@@ -2264,17 +2261,6 @@ function HomeDashboard({ onSignOut, now }) {
   const setJournalTabSafe = (tab) => {
     setJournalTab(tab);
     setJournalPage(1);
-    setSelectedJournalTaskId(null);
-  };
-
-  const updateJournalNote = (taskId, note) => {
-    setJournalTasks((prev) => prev.map((task) => (
-      task.id === taskId ? { ...task, note } : task
-    )));
-  };
-
-  const openJournalTask = (taskId) => {
-    setSelectedJournalTaskId(taskId);
   };
 
   const openEditTask = (taskId) => {
@@ -2316,10 +2302,6 @@ function HomeDashboard({ onSignOut, now }) {
     setEditingTaskId(taskId);
     setTaskWizardStep(1);
     setShowAddModal(true);
-  };
-
-  const closeJournalTask = () => {
-    setSelectedJournalTaskId(null);
   };
 
   const startJournalTimer = (taskId) => {
@@ -2364,13 +2346,30 @@ function HomeDashboard({ onSignOut, now }) {
   const deleteJournalTask = (taskId) => {
     setJournalTasks((prev) => prev.filter((task) => task.id !== taskId));
     setRunningTaskId((prev) => (prev === taskId ? null : prev));
-    setSelectedJournalTaskId((prev) => (prev === taskId ? null : prev));
     setJournalTimeDrafts((prev) => {
       if (!(taskId in prev)) return prev;
       const next = { ...prev };
       delete next[taskId];
       return next;
     });
+  };
+
+  const openNoteSheet = (taskId) => {
+    const task = journalTasks.find((item) => item.id === taskId);
+    setNoteDraft(task?.note || '');
+    setNoteTaskId(taskId);
+  };
+
+  const closeNoteSheet = () => {
+    setNoteTaskId(null);
+    setNoteDraft('');
+  };
+
+  const saveNoteSheet = () => {
+    setJournalTasks((prev) => prev.map((task) => (
+      task.id === noteTaskId ? { ...task, note: noteDraft } : task
+    )));
+    closeNoteSheet();
   };
 
   const resetJournalTimer = (taskId) => {
@@ -2868,10 +2867,6 @@ function HomeDashboard({ onSignOut, now }) {
 
   const goTaskWizardNext = () => {
     setTaskWizardStep((prev) => Math.min(3, prev + 1));
-  };
-
-  const goTaskWizardBack = () => {
-    setTaskWizardStep((prev) => Math.max(1, prev - 1));
   };
 
   const addTypeMeta = {
@@ -3415,7 +3410,7 @@ function HomeDashboard({ onSignOut, now }) {
           </div>
         </div>
       ) : showJournal ? (
-        <div className={`journal-view fade-up ${selectedJournalTask ? 'is-task-modal-open' : ''}`}>
+        <div className="journal-view fade-up">
           <div className="journal-view__top">
             <div className="journal-view__header">
               <button
@@ -3469,7 +3464,6 @@ function HomeDashboard({ onSignOut, now }) {
                   onClick={() => {
                     setJournalDayOffset((prev) => prev - 1);
                     setJournalPage(1);
-                    setSelectedJournalTaskId(null);
                   }}
                   aria-label="Previous day"
                 >
@@ -3481,7 +3475,6 @@ function HomeDashboard({ onSignOut, now }) {
                   onClick={() => {
                     setJournalDayOffset((prev) => prev + 1);
                     setJournalPage(1);
-                    setSelectedJournalTaskId(null);
                   }}
                   aria-label="Next day"
                 >
@@ -3499,7 +3492,6 @@ function HomeDashboard({ onSignOut, now }) {
                   onClick={() => {
                     setJournalDayOffset(0);
                     setJournalPage(1);
-                    setSelectedJournalTaskId(null);
                   }}
                 >
                   Today
@@ -3511,7 +3503,6 @@ function HomeDashboard({ onSignOut, now }) {
                   onClick={() => {
                     setJournalDayOffset(0);
                     setJournalPage(1);
-                    setSelectedJournalTaskId(null);
                   }}
                 >
                   <Calendar className="w-4 h-4" strokeWidth={2.2} />
@@ -3540,17 +3531,7 @@ function HomeDashboard({ onSignOut, now }) {
                   return (
                     <article
                       key={task.id}
-                      className={`journal-card journal-card--${task.accent} is-collapsed journal-card--clickable`}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => openJournalTask(task.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          openJournalTask(task.id);
-                        }
-                      }}
-                      aria-label={`Open details for ${task.title}`}
+                      className={`journal-card journal-card--${task.accent} is-collapsed`}
                     >
                       <div className="journal-card__rail" />
                       <div className="journal-card__body">
@@ -3699,6 +3680,16 @@ function HomeDashboard({ onSignOut, now }) {
                           <button
                             type="button"
                             className="journal-card__action"
+                            onClick={() => openNoteSheet(task.id)}
+                            aria-label={`Add note for ${task.title}`}
+                            title="Note"
+                          >
+                            <StickyNote className="w-3.5 h-3.5" strokeWidth={2.2} />
+                            <span>Note</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="journal-card__action"
                             onClick={() => openEditTask(task.id)}
                             aria-label={`Edit ${task.title}`}
                             title="Edit"
@@ -3757,116 +3748,6 @@ function HomeDashboard({ onSignOut, now }) {
             )}
           </div>
 
-          {selectedJournalTask && (
-            <div
-              className="journal-task-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="journal-task-modal-title"
-            >
-              <button
-                type="button"
-                className="journal-task-modal__backdrop"
-                aria-label="Close task details"
-                onClick={closeJournalTask}
-              />
-              <div
-                className={`journal-task-modal__sheet journal-task-modal__sheet--${selectedJournalTask.accent} fade-up`}
-              >
-                <div className="journal-task-modal__header">
-                  <div className="min-w-0 flex-1">
-                    <span
-                      className={`journal-task-modal__badge journal-task-modal__badge--${
-                        runningTaskId === selectedJournalTask.id ? 'active' : selectedJournalTask.status
-                      }`}
-                    >
-                      {selectedJournalTask.status === 'done' && runningTaskId !== selectedJournalTask.id
-                        ? 'Completed'
-                        : runningTaskId === selectedJournalTask.id || selectedJournalTask.status === 'active'
-                          ? 'In progress'
-                          : 'Pending'}
-                    </span>
-                    <h2 id="journal-task-modal-title" className="journal-task-modal__title">
-                      {selectedJournalTask.title}
-                    </h2>
-                    <p className="journal-task-modal__subtitle">
-                      {selectedJournalTask.client}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="journal-task-modal__close pressable"
-                    onClick={closeJournalTask}
-                    aria-label="Close task details"
-                  >
-                    <X className="w-4 h-4" strokeWidth={2.3} />
-                  </button>
-                </div>
-
-                <div className="journal-task-modal__body scroll-hide">
-                  <div className="journal-task-modal__metric">
-                    <span className="journal-task-modal__metric-label">Time logged</span>
-                    <span className="journal-task-modal__metric-value tabular-nums">
-                      {runningTaskId === selectedJournalTask.id
-                        ? formatJournalElapsed(selectedJournalTask.seconds)
-                        : formatJournalHours(selectedJournalTask.seconds)}
-                    </span>
-                  </div>
-
-                  <div className="journal-task-modal__grid">
-                    <div className="journal-task-modal__field">
-                      <span className="journal-task-modal__label">Sales Ref</span>
-                      <span className="journal-task-modal__value">{selectedJournalTask.salesRef}</span>
-                    </div>
-                    <div className="journal-task-modal__field">
-                      <span className="journal-task-modal__label">Due</span>
-                      <span className="journal-task-modal__value">{selectedJournalTask.due}</span>
-                    </div>
-                    <div className="journal-task-modal__field">
-                      <span className="journal-task-modal__label">Assigned by</span>
-                      <span className="journal-task-modal__value">{selectedJournalTask.assignedBy}</span>
-                    </div>
-                    <div className="journal-task-modal__field">
-                      <span className="journal-task-modal__label">Department</span>
-                      <span className="journal-task-modal__value">{selectedJournalTask.department}</span>
-                    </div>
-                  </div>
-
-                  <div className="journal-task-modal__panel">
-                    <span className="journal-task-modal__label">Description</span>
-                    <p className="journal-task-modal__desc">
-                      {selectedJournalTask.description || 'No description provided.'}
-                    </p>
-                  </div>
-
-                  <label className="journal-task-modal__note">
-                    <span className="journal-task-modal__label">Note</span>
-                    <input
-                      className="journal-task-modal__note-input"
-                      placeholder="Add a note for this task..."
-                      value={selectedJournalTask.note}
-                      onChange={(e) => updateJournalNote(selectedJournalTask.id, e.target.value)}
-                    />
-                  </label>
-                </div>
-
-                <div className="journal-task-modal__footer">
-                  <button type="button" className="journal-task-modal__action pressable">
-                    <Eye className="w-4 h-4" strokeWidth={2.1} />
-                    <span>View</span>
-                  </button>
-                  <button type="button" className="journal-task-modal__action pressable">
-                    <Pencil className="w-3.5 h-3.5" strokeWidth={2.1} />
-                    <span>Edit</span>
-                  </button>
-                  <button type="button" className="journal-task-modal__action pressable">
-                    <RefreshCw className="w-3.5 h-3.5" strokeWidth={2.1} />
-                    <span>Sync</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       ) : showOpportunities ? (
         <div className="leads-view fade-up">
@@ -4625,6 +4506,59 @@ function HomeDashboard({ onSignOut, now }) {
           })}
         </div>
       </div>
+      )}
+
+      {noteTaskId && (
+        <div className="clock-modal" role="dialog" aria-modal="true" aria-labelledby="task-note-title">
+          <button
+            type="button"
+            className="clock-modal__backdrop"
+            aria-label="Close"
+            onClick={closeNoteSheet}
+          />
+          <div className="clock-modal__sheet fade-up">
+            <div className="clock-modal__handle" />
+            <div className="clock-modal__header">
+              <div>
+                <div id="task-note-title" className="clock-modal__title">Add Note</div>
+                <div className="clock-modal__subtitle">
+                  {journalTasks.find((task) => task.id === noteTaskId)?.title || 'Task'}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="clock-modal__close pressable"
+                onClick={closeNoteSheet}
+                aria-label="Close popup"
+              >
+                <X className="w-4 h-4" strokeWidth={2.3} />
+              </button>
+            </div>
+
+            <div className="clock-modal__field">
+              <label className="clock-modal__label" htmlFor="task-note-input">
+                Note
+              </label>
+              <textarea
+                id="task-note-input"
+                className="add-form__input add-form__textarea task-note-textarea"
+                rows={8}
+                placeholder="Add a note for this task..."
+                value={noteDraft}
+                onChange={(e) => setNoteDraft(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            <button
+              type="button"
+              className="clock-modal__confirm pressable"
+              onClick={saveNoteSheet}
+            >
+              Save Note
+            </button>
+          </div>
+        </div>
       )}
 
       {showClockInModal && (
@@ -5411,13 +5345,21 @@ function HomeDashboard({ onSignOut, now }) {
                     <label className="task-form__label" htmlFor="task-sales-ref">
                       Sales Ref <span className="required-star">*</span>
                     </label>
-                    <input
+                    <select
                       id="task-sales-ref"
                       className="task-form__control"
                       value={addForm.salesRef}
                       onChange={(e) => updateAddForm('salesRef', e.target.value)}
                       required
-                    />
+                    >
+                      <option value="">Select sales ref</option>
+                      <option>SOE V2</option>
+                      <option>TerRaX</option>
+                      <option>SustainScan</option>
+                      {addForm.salesRef && !['SOE V2', 'TerRaX', 'SustainScan'].includes(addForm.salesRef) && (
+                        <option value={addForm.salesRef}>{addForm.salesRef}</option>
+                      )}
+                    </select>
                   </div>
 
                   <div className="task-form__row">
