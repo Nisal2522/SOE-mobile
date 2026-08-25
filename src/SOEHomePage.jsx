@@ -47,13 +47,14 @@ import {
   Zap,
   TrendingDown,
   Activity,
-  Upload,
   Search,
   Building2,
   UserPlus,
   Mail,
   StickyNote,
   AlertCircle,
+  Camera,
+  Check,
 } from 'lucide-react';
 import logo from './assets/logo.png';
 import colorLogo from './assets/color.png';
@@ -3589,7 +3590,13 @@ function HomeDashboard({ onSignOut, now }) {
                               <h2 className="journal-card__title">{task.title}</h2>
                             </div>
 
-                            {task.tab !== 'delegated' && (
+                            {task.tab === 'delegated' ? (
+                              <div className="journal-timer journal-timer--readonly">
+                                <span className="journal-timer__value journal-timer__value--readonly tabular-nums">
+                                  {formatJournalHours(task.seconds)}
+                                </span>
+                              </div>
+                            ) : (
                             <div
                               className={[
                                 'journal-timer',
@@ -5819,76 +5826,62 @@ function HomeDashboard({ onSignOut, now }) {
                   </div>
                   {renderSelectServices()}
 
-                  <div className="visiting-card-section">
-                    <div className="visiting-card-section__heading">Visiting Card</div>
-                    <div className="visiting-card-section__grid">
-                      <div className="visiting-card__field">
-                        <label className="clock-modal__label" htmlFor="visiting-card-front">
-                          Visiting Card Front
-                        </label>
-                        <label className="task-attach__picker pressable" htmlFor="visiting-card-front">
-                          <Upload className="w-4 h-4" strokeWidth={2.2} />
-                          <span>Take / Upload Photo</span>
-                          <input
-                            id="visiting-card-front"
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            className="task-attach__input"
-                            onChange={(e) => {
-                              captureVisitingCardImage('visitingCardFront', e.target.files?.[0]);
-                              e.target.value = '';
-                            }}
-                          />
-                        </label>
-                        {addForm.visitingCardFront && (
-                          <div className="visiting-card__preview">
-                            <img src={addForm.visitingCardFront} alt="Visiting card front preview" />
-                            <button
-                              type="button"
-                              className="visiting-card__remove pressable"
-                              onClick={() => updateAddForm('visitingCardFront', null)}
-                              aria-label="Remove visiting card front image"
+                  <div className="scan-section">
+                    <div className="clock-modal__label">Visiting Card</div>
+                    <div className="scan-section__stack">
+                      {[
+                        { key: 'visitingCardFront', id: 'visiting-card-front', label: 'Front Side' },
+                        { key: 'visitingCardBack', id: 'visiting-card-back', label: 'Back Side' },
+                      ].map((side) => {
+                        const value = addForm[side.key];
+                        return (
+                          <div className="scan-card" key={side.key}>
+                            <label
+                              className={`scan-card__tile ${value ? 'has-image' : ''}`}
+                              htmlFor={side.id}
                             >
-                              <Trash2 className="w-3.5 h-3.5" strokeWidth={2.1} />
-                            </button>
+                              {value ? (
+                                <>
+                                  <img className="scan-card__image" src={value} alt={`${side.label} preview`} />
+                                  <span className="scan-card__badge">
+                                    <Check className="w-3 h-3" strokeWidth={2.6} />
+                                    {side.label}
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="scan-card__icon">
+                                    <Camera className="w-6 h-6" strokeWidth={1.7} />
+                                  </span>
+                                  <span className="scan-card__label">{side.label}</span>
+                                  <span className="scan-card__hint">Tap to capture or upload an image</span>
+                                </>
+                              )}
+                              <input
+                                id={side.id}
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                className="task-attach__input"
+                                onChange={(e) => {
+                                  captureVisitingCardImage(side.key, e.target.files?.[0]);
+                                  e.target.value = '';
+                                }}
+                              />
+                            </label>
+                            {value && (
+                              <button
+                                type="button"
+                                className="scan-card__remove pressable"
+                                onClick={() => updateAddForm(side.key, null)}
+                                aria-label={`Remove ${side.label} image`}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" strokeWidth={2.1} />
+                              </button>
+                            )}
                           </div>
-                        )}
-                      </div>
-
-                      <div className="visiting-card__field">
-                        <label className="clock-modal__label" htmlFor="visiting-card-back">
-                          Visiting Card Back
-                        </label>
-                        <label className="task-attach__picker pressable" htmlFor="visiting-card-back">
-                          <Upload className="w-4 h-4" strokeWidth={2.2} />
-                          <span>Take / Upload Photo</span>
-                          <input
-                            id="visiting-card-back"
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            className="task-attach__input"
-                            onChange={(e) => {
-                              captureVisitingCardImage('visitingCardBack', e.target.files?.[0]);
-                              e.target.value = '';
-                            }}
-                          />
-                        </label>
-                        {addForm.visitingCardBack && (
-                          <div className="visiting-card__preview">
-                            <img src={addForm.visitingCardBack} alt="Visiting card back preview" />
-                            <button
-                              type="button"
-                              className="visiting-card__remove pressable"
-                              onClick={() => updateAddForm('visitingCardBack', null)}
-                              aria-label="Remove visiting card back image"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" strokeWidth={2.1} />
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </>
@@ -5966,22 +5959,6 @@ function HomeDashboard({ onSignOut, now }) {
                     </select>
                   </div>
                   <div className="clock-modal__field">
-                    <label className="clock-modal__label" htmlFor="opp-probability">
-                      Probability (%) <span className="required-star">*</span>
-                    </label>
-                    <input
-                      id="opp-probability"
-                      className="add-form__input"
-                      type="number"
-                      min="0"
-                      max="100"
-                      placeholder="0"
-                      value={addForm.probability}
-                      onChange={(e) => updateAddForm('probability', e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="clock-modal__field">
                     <label className="clock-modal__label" htmlFor="opp-created-by">
                       Created By <span className="required-star">*</span>
                     </label>
@@ -6056,6 +6033,10 @@ function HomeDashboard({ onSignOut, now }) {
                 className="clock-modal__confirm pressable"
                 onClick={() => submitAddForm()}
               >
+                {(() => {
+                  const AddTypeIcon = addTypeMeta[addType]?.icon;
+                  return AddTypeIcon ? <AddTypeIcon className="w-[18px] h-[18px]" strokeWidth={2.3} /> : null;
+                })()}
                 Create {addTypeMeta[addType]?.label || 'Record'}
               </button>
             )}
