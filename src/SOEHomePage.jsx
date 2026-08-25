@@ -654,6 +654,16 @@ const LEAD_COUNTRY_OPTIONS = [
   'Nepal',
 ];
 
+const COMPANY_NAME_OPTIONS = [
+  'Alia Investments Pvt. Ltd.',
+  'ALILA INTERNATIONAL CO., LIMITED',
+  'ALILA INTERNATIONAL CO.,Ltd',
+  'ALLGREEN ENERGY (M) SDN BHD',
+  'Alliance Finance Company PLC',
+  'All Natural Coco Products, Inc.',
+  'ALL SEVEN TEXTILE COMPANY LIMITED',
+];
+
 const LEAD_ACCOUNT_NAME_OPTIONS = [
   'Adamjee Lukmanjee Pvt Ltd',
   'Adampan Organic Farm (Pvt) Ltd',
@@ -983,8 +993,8 @@ const OPPORTUNITIES_SEED = [
     id: 'opp-1',
     accountName: '3S REAL DECOR',
     leadSource: 'Referral',
-    oppType: 'New Business',
-    opportunityStatus: 'Proposal',
+    oppType: 'New Customer',
+    opportunityStatus: 'Quotation',
     probability: 60,
     createdBy: 'Nisal Amarasekara',
     opportunityOwner: 'Thilina Gunathilake',
@@ -994,8 +1004,8 @@ const OPPORTUNITIES_SEED = [
   {
     id: 'opp-2',
     accountName: 'GreenLeaf Textiles',
-    leadSource: 'Website',
-    oppType: 'Existing Business',
+    leadSource: 'Web',
+    oppType: 'Existing Customer – New Service',
     opportunityStatus: 'Negotiation',
     probability: 75,
     createdBy: 'Dilan Perera',
@@ -1006,8 +1016,8 @@ const OPPORTUNITIES_SEED = [
   {
     id: 'opp-3',
     accountName: 'OceanFresh Fisheries',
-    leadSource: 'Trade Show',
-    oppType: 'New Business',
+    leadSource: 'Exhibition',
+    oppType: 'New Customer',
     opportunityStatus: 'Qualification',
     probability: 25,
     createdBy: 'Nisal Amarasekara',
@@ -1018,9 +1028,9 @@ const OPPORTUNITIES_SEED = [
   {
     id: 'opp-4',
     accountName: 'PCU Apparel Group',
-    leadSource: 'Partner',
-    oppType: 'Renewal',
-    opportunityStatus: 'Closed Won',
+    leadSource: 'Inter Company',
+    oppType: 'Existing Customer – New Program',
+    opportunityStatus: 'Close',
     probability: 100,
     createdBy: 'Thilina Gunathilake',
     opportunityOwner: 'Dilan Perera',
@@ -5680,14 +5690,21 @@ function HomeDashboard({ onSignOut, now }) {
                     <label className="task-form__label" htmlFor="task-client">
                       Client <span className="required-star">*</span>
                     </label>
-                    <input
+                    <select
                       id="task-client"
                       className="task-form__control"
-                      placeholder="Enter client name"
                       value={addForm.client}
                       onChange={(e) => updateAddForm('client', e.target.value)}
                       required
-                    />
+                    >
+                      <option value="">Select client</option>
+                      {COMPANY_NAME_OPTIONS.map((company) => (
+                        <option key={company}>{company}</option>
+                      ))}
+                      {addForm.client && !COMPANY_NAME_OPTIONS.includes(addForm.client) && (
+                        <option value={addForm.client}>{addForm.client}</option>
+                      )}
+                    </select>
                   </div>
 
                   <div className="task-form__row">
@@ -6145,14 +6162,21 @@ function HomeDashboard({ onSignOut, now }) {
                     <label className="clock-modal__label" htmlFor="opp-account">
                       Account Name <span className="required-star">*</span>
                     </label>
-                    <input
+                    <select
                       id="opp-account"
                       className="add-form__input"
-                      placeholder="Enter Account Name"
                       value={addForm.accountName}
                       onChange={(e) => updateAddForm('accountName', e.target.value)}
                       required
-                    />
+                    >
+                      <option value="">Select account name</option>
+                      {COMPANY_NAME_OPTIONS.map((company) => (
+                        <option key={company}>{company}</option>
+                      ))}
+                      {addForm.accountName && !COMPANY_NAME_OPTIONS.includes(addForm.accountName) && (
+                        <option value={addForm.accountName}>{addForm.accountName}</option>
+                      )}
+                    </select>
                   </div>
                   <div className="clock-modal__field">
                     <label className="clock-modal__label" htmlFor="opp-lead-source">

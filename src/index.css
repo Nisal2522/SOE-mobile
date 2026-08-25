@@ -2436,6 +2436,26 @@ button {
   background: rgba(240, 68, 56, 0.12);
 }
 
+.lead-card__status--prospecting {
+  color: #1b6bb5;
+  background: rgba(58, 108, 255, 0.12);
+}
+
+.lead-card__status--needs-analysis {
+  color: #1b6bb5;
+  background: rgba(58, 108, 255, 0.12);
+}
+
+.lead-card__status--quotation {
+  color: #7a4bb8;
+  background: rgba(138, 92, 246, 0.14);
+}
+
+.lead-card__status--close {
+  color: #1a8a58;
+  background: rgba(46, 184, 122, 0.14);
+}
+
 .lead-card__avatar--opp {
   background: linear-gradient(135deg, #3eb2ed 0%, #1b1e42 100%);
 }
