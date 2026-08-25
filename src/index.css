@@ -983,6 +983,25 @@ button {
   background: #2eb87a;
 }
 
+.confirm-modal__icon--danger {
+  background: rgba(225, 29, 72, 0.1);
+  color: #e11d48;
+}
+
+.confirm-modal__cancel--neutral {
+  background: #eef0f4;
+  color: #4b5162;
+}
+
+[data-theme="dark"] .confirm-modal__cancel--neutral {
+  background: #2a2f42;
+  color: #cbd1e0;
+}
+
+.confirm-modal__confirm--danger {
+  background: #e11d48;
+}
+
 /* Clock In modal */
 .clock-modal {
   position: absolute;
@@ -2183,6 +2202,11 @@ button {
   background: rgba(62, 178, 237, 0.14);
   color: #1b8fbf;
   cursor: pointer;
+}
+
+.journal-datebar__chev:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .journal-datebar__center {

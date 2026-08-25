@@ -1695,6 +1695,7 @@ function HomeDashboard({ onSignOut, now }) {
   const [assigneeQuery, setAssigneeQuery] = useState('');
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
+  const [deleteConfirmTaskId, setDeleteConfirmTaskId] = useState(null);
   const [addForm, setAddForm] = useState({
     title: '',
     description: '',
@@ -3504,9 +3505,11 @@ function HomeDashboard({ onSignOut, now }) {
                   type="button"
                   className="journal-datebar__chev pressable"
                   onClick={() => {
+                    if (journalDayOffset >= 0) return;
                     setJournalDayOffset((prev) => prev + 1);
                     setJournalPage(1);
                   }}
+                  disabled={journalDayOffset >= 0}
                   aria-label="Next day"
                 >
                   <ChevronRight className="w-4 h-4" strokeWidth={2.4} />
@@ -3770,11 +3773,7 @@ function HomeDashboard({ onSignOut, now }) {
                               <button
                                 type="button"
                                 className="journal-card__action journal-card__action--icon-only journal-card__action--delete"
-                                onClick={() => {
-                                  if (window.confirm(`Delete "${task.title}"? This can't be undone.`)) {
-                                    deleteJournalTask(task.id);
-                                  }
-                                }}
+                                onClick={() => setDeleteConfirmTaskId(task.id)}
                                 aria-label={`Delete ${task.title}`}
                                 title="Delete"
                               >
@@ -6076,6 +6075,47 @@ function HomeDashboard({ onSignOut, now }) {
                 }}
               >
                 Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmTaskId && (
+        <div className="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-confirm-title">
+          <button
+            type="button"
+            className="confirm-modal__backdrop"
+            aria-label="Close"
+            onClick={() => setDeleteConfirmTaskId(null)}
+          />
+          <div className="confirm-modal__sheet fade-up">
+            <div className="confirm-modal__icon confirm-modal__icon--danger">
+              <Trash2 className="w-9 h-9" strokeWidth={1.8} />
+            </div>
+            <div id="delete-confirm-title" className="confirm-modal__title">Delete Task</div>
+            <p className="confirm-modal__message">
+              Are you sure you want to delete
+              {' '}
+              &quot;{journalTasks.find((task) => task.id === deleteConfirmTaskId)?.title}&quot;? This can&apos;t be undone.
+            </p>
+            <div className="confirm-modal__actions">
+              <button
+                type="button"
+                className="confirm-modal__cancel confirm-modal__cancel--neutral pressable"
+                onClick={() => setDeleteConfirmTaskId(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="confirm-modal__confirm confirm-modal__confirm--danger pressable"
+                onClick={() => {
+                  deleteJournalTask(deleteConfirmTaskId);
+                  setDeleteConfirmTaskId(null);
+                }}
+              >
+                Delete
               </button>
             </div>
           </div>
