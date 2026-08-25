@@ -1708,7 +1708,7 @@ function HomeDashboard({ onSignOut, now }) {
   ]);
   const leaveReportsTo = 'Thilina Gunathilake';
   const leaveTypeOptions = ['Annual', 'Casual', 'Sick', 'Paid'];
-  const leaveModeOptions = ['Full Day', 'Half Day'];
+  const leaveModeOptions = ['Full Day', 'Half Day -Afternoon', 'Half Day -Morning'];
   const leaveTypeToBalanceKey = {
     Annual: 'annual',
     Casual: 'casual',
@@ -2027,7 +2027,7 @@ function HomeDashboard({ onSignOut, now }) {
 
   const createLeaveFormRow = () => ({
     id: `leave-row-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    date: toDateInput(now),
+    date: '',
     type: '',
     mode: '',
   });
@@ -2249,6 +2249,16 @@ function HomeDashboard({ onSignOut, now }) {
   const leaveRecords = leaveTab === 'leaves' ? leaveRecordsList : wfhRecords;
   const setLeaveRecordsForTab = leaveTab === 'leaves' ? setLeaveRecordsList : setWfhRecords;
 
+  const pendingLeaveDaysByKey = { annual: 0, casual: 0, sick: 0, paid: 0 };
+  if (requestType === 'leave') {
+    leaveFormRows.forEach((row) => {
+      if (!row.type || !row.mode) return;
+      const key = leaveTypeToBalanceKey[row.type];
+      if (!key) return;
+      pendingLeaveDaysByKey[key] += row.mode === 'Full Day' ? 1 : 0.5;
+    });
+  }
+
   const openLeaveDeleteConfirm = (id) => setDeleteLeaveRecordId(id);
   const closeLeaveDeleteConfirm = () => setDeleteLeaveRecordId(null);
   const confirmDeleteLeave = () => {
@@ -2408,6 +2418,7 @@ function HomeDashboard({ onSignOut, now }) {
       assignTo: task.assignedBy || 'Nisal Amarasekara',
       assignDate: assignDateValue,
       description: task.description || '',
+      dueDate: task.dueDate || '',
       applicationReceivedDate: task.applicationReceivedDate || shiftedDate(-10),
       arCompletedDate: task.arCompletedDate || shiftedDate(-3),
       arApprovalRequestedDate: task.arApprovalRequestedDate || shiftedDate(-5),
@@ -2591,7 +2602,7 @@ function HomeDashboard({ onSignOut, now }) {
     setAddForm({
       title: '',
       description: '',
-      dueDate: toDateInput(now),
+      dueDate: '',
       priority: 'Medium',
       company: '',
       contact: '',
@@ -2862,6 +2873,7 @@ function HomeDashboard({ onSignOut, now }) {
       due: dueLabel,
       department: form.department || 'IT',
       description: form.description || [form.activity, form.category].filter(Boolean).join(' · '),
+      dueDate: form.dueDate || '',
       workload: 1,
       status: 'new',
       accent: 'orange',
@@ -2969,6 +2981,7 @@ function HomeDashboard({ onSignOut, now }) {
             due: primary.due,
             department: primary.department,
             description: primary.description,
+            dueDate: primary.dueDate,
             applicationReceivedDate: primary.applicationReceivedDate,
             arCompletedDate: primary.arCompletedDate,
             arApprovalRequestedDate: primary.arApprovalRequestedDate,
@@ -3434,10 +3447,11 @@ function HomeDashboard({ onSignOut, now }) {
           <div className="leave-view__scroll scroll-hide">
             <div className="leave-balances">
               {leaveBalances.map((balance) => {
-                const remaining = Number((balance.total - balance.used).toFixed(1));
+                const pending = pendingLeaveDaysByKey[balance.key] || 0;
+                const remaining = Number(Math.max(0, balance.total - balance.used - pending).toFixed(1));
                 const pct = Math.round((remaining / balance.total) * 100);
                 return (
-                  <div key={balance.key} className="leave-balance-card">
+                  <div key={balance.key} className={`leave-balance-card ${pending > 0 ? 'is-previewing' : ''}`}>
                     <div className="leave-balance-card__value">
                       {remaining} <span>/ {balance.total}</span>
                     </div>
@@ -5141,12 +5155,14 @@ function HomeDashboard({ onSignOut, now }) {
                   <>
                     <div className="leave-drawer__balances">
                       {leaveBalances.map((balance) => {
-                        const remaining = balance.total - balance.used;
+                        const pending = pendingLeaveDaysByKey[balance.key] || 0;
+                        const remaining = Math.max(0, balance.total - balance.used - pending);
                         return (
-                          <div key={balance.key} className="leave-drawer__balance-card">
+                          <div key={balance.key} className={`leave-drawer__balance-card ${pending > 0 ? 'is-previewing' : ''}`}>
                             <div className="leave-drawer__balance-label">{balance.label}</div>
                             <div className="leave-drawer__balance-value">
                               Remaining: <span>{Number(remaining.toFixed(1))}</span>
+                              {pending > 0 && <span className="leave-drawer__balance-pending"> (−{pending})</span>}
                             </div>
                           </div>
                         );
@@ -5293,28 +5309,20 @@ function HomeDashboard({ onSignOut, now }) {
                                 </div>
 
                                 <div className="wfh-drawer__field">
-                                  <span className="wfh-drawer__label">Mode</span>
-                                  <div
-                                    className="wfh-drawer__modes"
-                                    role="group"
-                                    aria-label={`Mode for leave day ${index + 1}`}
+                                  <label className="wfh-drawer__label" htmlFor={`leave-mode-${row.id}`}>
+                                    Mode
+                                  </label>
+                                  <select
+                                    id={`leave-mode-${row.id}`}
+                                    className="wfh-drawer__input leave-drawer__select"
+                                    value={row.mode}
+                                    onChange={(e) => updateLeaveFormRow(row.id, 'mode', e.target.value)}
                                   >
-                                    {leaveModeOptions.map((mode) => {
-                                      const selected = row.mode === mode;
-                                      return (
-                                        <button
-                                          key={mode}
-                                          type="button"
-                                          className={`wfh-drawer__mode ${selected ? 'is-selected' : ''}`}
-                                          aria-pressed={selected}
-                                          onMouseDown={(e) => e.preventDefault()}
-                                          onClick={() => updateLeaveFormRow(row.id, 'mode', mode)}
-                                        >
-                                          {mode}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
+                                    <option value="">Select mode</option>
+                                    {leaveModeOptions.map((mode) => (
+                                      <option key={mode} value={mode}>{mode}</option>
+                                    ))}
+                                  </select>
                                 </div>
                               </div>
                             )}
@@ -5676,6 +5684,20 @@ function HomeDashboard({ onSignOut, now }) {
                         <option value={addForm.title}>{addForm.title}</option>
                       )}
                     </select>
+                  </div>
+
+                  <div className="task-form__row">
+                    <label className="task-form__label" htmlFor="task-deadline">
+                      Deadline <span className="required-star">*</span>
+                    </label>
+                    <input
+                      id="task-deadline"
+                      type="date"
+                      className="task-form__control"
+                      value={addForm.dueDate}
+                      onChange={(e) => updateAddForm('dueDate', e.target.value)}
+                      required
+                    />
                   </div>
 
                   <div className="task-form__row">
