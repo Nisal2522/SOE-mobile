@@ -1686,6 +1686,15 @@ function HomeDashboard({ onSignOut, now }) {
   const [leaveRecordsList, setLeaveRecordsList] = useState(LEAVE_RECORDS);
   const [leaveBalances, setLeaveBalances] = useState(LEAVE_BALANCES);
   const [leaveFormError, setLeaveFormError] = useState('');
+  const [deleteLeaveRecordId, setDeleteLeaveRecordId] = useState(null);
+  const [updateLeaveRecordId, setUpdateLeaveRecordId] = useState(null);
+  const [leaveUpdateForm, setLeaveUpdateForm] = useState({
+    type: '',
+    mode: 'Full Day',
+    from: '',
+    to: '',
+    reason: '',
+  });
   const [wfhRecords, setWfhRecords] = useState(WFH_RECORDS);
   const [wfhFormRows, setWfhFormRows] = useState([
     { id: 'wfh-row-1', date: '', type: 'Work From Home', mode: '' },
@@ -1695,7 +1704,7 @@ function HomeDashboard({ onSignOut, now }) {
     actingArrangement: '',
   });
   const [leaveFormRows, setLeaveFormRows] = useState([
-    { id: 'leave-row-1', date: '', type: 'Annual', mode: 'Full Day' },
+    { id: 'leave-row-1', date: '', type: '', mode: '' },
   ]);
   const leaveReportsTo = 'Thilina Gunathilake';
   const leaveTypeOptions = ['Annual', 'Casual', 'Sick', 'Paid'];
@@ -2019,8 +2028,8 @@ function HomeDashboard({ onSignOut, now }) {
   const createLeaveFormRow = () => ({
     id: `leave-row-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     date: toDateInput(now),
-    type: 'Annual',
-    mode: 'Full Day',
+    type: '',
+    mode: '',
   });
 
   const resetWfhForm = () => {
@@ -2238,6 +2247,42 @@ function HomeDashboard({ onSignOut, now }) {
   };
 
   const leaveRecords = leaveTab === 'leaves' ? leaveRecordsList : wfhRecords;
+  const setLeaveRecordsForTab = leaveTab === 'leaves' ? setLeaveRecordsList : setWfhRecords;
+
+  const openLeaveDeleteConfirm = (id) => setDeleteLeaveRecordId(id);
+  const closeLeaveDeleteConfirm = () => setDeleteLeaveRecordId(null);
+  const confirmDeleteLeave = () => {
+    setLeaveRecordsForTab((prev) => prev.filter((record) => record.id !== deleteLeaveRecordId));
+    setExpandedLeaveId((prev) => (prev === deleteLeaveRecordId ? null : prev));
+    setDeleteLeaveRecordId(null);
+  };
+
+  const openLeaveUpdate = (record) => {
+    setLeaveUpdateForm({
+      type: record.type,
+      mode: record.mode,
+      from: record.from,
+      to: record.to,
+      reason: record.reason || '',
+    });
+    setUpdateLeaveRecordId(record.id);
+  };
+  const closeLeaveUpdate = () => setUpdateLeaveRecordId(null);
+  const saveLeaveUpdate = () => {
+    setLeaveRecordsForTab((prev) => prev.map((record) => (
+      record.id === updateLeaveRecordId
+        ? {
+          ...record,
+          type: leaveUpdateForm.type,
+          mode: leaveUpdateForm.mode,
+          from: leaveUpdateForm.from,
+          to: leaveUpdateForm.to,
+          reason: leaveUpdateForm.reason,
+        }
+        : record
+    )));
+    setUpdateLeaveRecordId(null);
+  };
 
   const openCalendarDocument = (event) => {
     if (!event?.hasDocument || !event.document) return;
@@ -3483,14 +3528,28 @@ function HomeDashboard({ onSignOut, now }) {
                             <p>{record.reason}</p>
                           </div>
                           <div className="leave-card__actions">
-                            <button type="button" className="leave-card__action" aria-label="View details">
-                              <Eye className="w-4 h-4" strokeWidth={2.1} />
-                              View
-                            </button>
-                            <button type="button" className="leave-card__action leave-card__action--danger" aria-label="Delete request">
-                              <Trash2 className="w-4 h-4" strokeWidth={2.1} />
-                              Delete
-                            </button>
+                            {record.status === 'pending' && (
+                              <button
+                                type="button"
+                                className="leave-card__action"
+                                aria-label="Update request"
+                                onClick={() => openLeaveUpdate(record)}
+                              >
+                                <Pencil className="w-4 h-4" strokeWidth={2.1} />
+                                Update
+                              </button>
+                            )}
+                            {record.status === 'pending' && (
+                              <button
+                                type="button"
+                                className="leave-card__action leave-card__action--danger"
+                                aria-label="Delete request"
+                                onClick={() => openLeaveDeleteConfirm(record.id)}
+                              >
+                                <Trash2 className="w-4 h-4" strokeWidth={2.1} />
+                                Delete
+                              </button>
+                            )}
                           </div>
                         </div>
                       )}
@@ -6285,6 +6344,147 @@ function HomeDashboard({ onSignOut, now }) {
           </div>
         </div>
       )}
+
+      {updateLeaveRecordId && (
+        <div className="clock-modal" role="dialog" aria-modal="true" aria-labelledby="leave-update-title">
+          <button
+            type="button"
+            className="clock-modal__backdrop"
+            aria-label="Close"
+            onClick={closeLeaveUpdate}
+          />
+          <div className="clock-modal__sheet fade-up">
+            <div className="clock-modal__handle" />
+            <div className="clock-modal__header">
+              <div>
+                <div id="leave-update-title" className="clock-modal__title">Update Request</div>
+                <div className="clock-modal__subtitle">Edit your pending request</div>
+              </div>
+              <button
+                type="button"
+                className="clock-modal__close pressable"
+                onClick={closeLeaveUpdate}
+                aria-label="Close popup"
+              >
+                <X className="w-4 h-4" strokeWidth={2.3} />
+              </button>
+            </div>
+
+            {leaveTab === 'leaves' && (
+              <div className="clock-modal__field">
+                <label className="clock-modal__label" htmlFor="leave-update-type">Type</label>
+                <select
+                  id="leave-update-type"
+                  className="add-form__input"
+                  value={leaveUpdateForm.type}
+                  onChange={(e) => setLeaveUpdateForm((prev) => ({ ...prev, type: e.target.value }))}
+                >
+                  {leaveTypeOptions.map((type) => (
+                    <option key={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="clock-modal__field">
+              <label className="clock-modal__label" htmlFor="leave-update-mode">Mode</label>
+              <select
+                id="leave-update-mode"
+                className="add-form__input"
+                value={leaveUpdateForm.mode}
+                onChange={(e) => setLeaveUpdateForm((prev) => ({ ...prev, mode: e.target.value }))}
+              >
+                {(leaveTab === 'leaves' ? leaveModeOptions : wfhModeOptions).map((mode) => (
+                  <option key={mode}>{mode}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="clock-modal__grid">
+              <div className="clock-modal__field">
+                <label className="clock-modal__label" htmlFor="leave-update-from">From</label>
+                <input
+                  id="leave-update-from"
+                  type="date"
+                  className="clock-modal__datetime"
+                  value={leaveUpdateForm.from}
+                  onChange={(e) => setLeaveUpdateForm((prev) => ({ ...prev, from: e.target.value }))}
+                />
+              </div>
+              <div className="clock-modal__field">
+                <label className="clock-modal__label" htmlFor="leave-update-to">To</label>
+                <input
+                  id="leave-update-to"
+                  type="date"
+                  className="clock-modal__datetime"
+                  value={leaveUpdateForm.to}
+                  onChange={(e) => setLeaveUpdateForm((prev) => ({ ...prev, to: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="clock-modal__field">
+              <label className="clock-modal__label" htmlFor="leave-update-reason">Reason</label>
+              <textarea
+                id="leave-update-reason"
+                className="add-form__input add-form__textarea"
+                rows={3}
+                value={leaveUpdateForm.reason}
+                onChange={(e) => setLeaveUpdateForm((prev) => ({ ...prev, reason: e.target.value }))}
+              />
+            </div>
+
+            <button
+              type="button"
+              className="clock-modal__confirm pressable"
+              onClick={saveLeaveUpdate}
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      )}
+
+      {deleteLeaveRecordId && (() => {
+        const record = leaveRecords.find((item) => item.id === deleteLeaveRecordId);
+        return (
+          <div className="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="leave-delete-title">
+            <button
+              type="button"
+              className="confirm-modal__backdrop"
+              aria-label="Close"
+              onClick={closeLeaveDeleteConfirm}
+            />
+            <div className="confirm-modal__sheet fade-up">
+              <div className="confirm-modal__icon confirm-modal__icon--danger">
+                <Trash2 className="w-9 h-9" strokeWidth={1.8} />
+              </div>
+              <div id="leave-delete-title" className="confirm-modal__title">Delete Request</div>
+              <p className="confirm-modal__message">
+                Are you sure you want to delete this
+                {' '}
+                {record ? `${record.type} · ${record.mode}` : ''} request? This can&apos;t be undone.
+              </p>
+              <div className="confirm-modal__actions">
+                <button
+                  type="button"
+                  className="confirm-modal__cancel confirm-modal__cancel--neutral pressable"
+                  onClick={closeLeaveDeleteConfirm}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="confirm-modal__confirm confirm-modal__confirm--danger pressable"
+                  onClick={confirmDeleteLeave}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </PhoneFrame>
   );
 }
