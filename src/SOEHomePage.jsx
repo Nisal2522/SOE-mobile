@@ -712,7 +712,7 @@ const JOURNAL_SEED = [
     note: '',
     status: 'new',
     accent: 'green',
-    seconds: 1200,
+    seconds: 0,
     tab: 'day',
   },
   {
@@ -849,6 +849,7 @@ const JOURNAL_SEED = [
     salesRef: 'Textile COR',
     title: 'Send COR',
     assignedBy: 'Nisal Amarasekara',
+    assignee: 'Sanduni Fernando',
     due: 'Aug 1, 2026',
     department: 'Certification / Contracting',
     description: 'Prepare and send certificate of registration draft for client review.',
@@ -865,6 +866,7 @@ const JOURNAL_SEED = [
     salesRef: 'Academy Support',
     title: 'Training prep',
     assignedBy: 'Nisal Amarasekara',
+    assignee: 'Kasun Jayawardena',
     due: 'Aug 2, 2026',
     department: 'Academy / Support',
     description: 'Assemble slide deck and sample exercises for next academy session.',
@@ -1624,6 +1626,7 @@ function HomeDashboard({ onSignOut, now }) {
   const [elapsed, setElapsed] = useState(0);
   const [activeTab, setActiveTab] = useState('home');
   const [showClockInModal, setShowClockInModal] = useState(false);
+  const [showClockOutModal, setShowClockOutModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showJournal, setShowJournal] = useState(false);
@@ -2442,16 +2445,9 @@ function HomeDashboard({ onSignOut, now }) {
 
   const handleClockButton = () => {
     if (clockedIn) {
-      const outEntry = {
-        id: `out-${Date.now()}`,
-        type: 'out',
-        location: workLocation,
-        date: toDateInput(now),
-        time: toTimeInput(now),
-        duration: fmt(elapsed),
-      };
-      setAttendanceHistory((prev) => [outEntry, ...prev]);
-      setClockedIn(false);
+      setClockDate(toDateInput(now));
+      setClockTime(toTimeInput(now));
+      setShowClockOutModal(true);
       return;
     }
     setClockDate(toDateInput(now));
@@ -2472,6 +2468,20 @@ function HomeDashboard({ onSignOut, now }) {
     setOnLeave(false);
     setClockedIn(true);
     setShowClockInModal(false);
+  };
+
+  const confirmClockOut = () => {
+    const outEntry = {
+      id: `out-${Date.now()}`,
+      type: 'out',
+      location: workLocation,
+      date: clockDate || toDateInput(now),
+      time: clockTime || toTimeInput(now),
+      duration: fmt(elapsed),
+    };
+    setAttendanceHistory((prev) => [outEntry, ...prev]);
+    setClockedIn(false);
+    setShowClockOutModal(false);
   };
 
   const openAddModal = (type = 'task') => {
@@ -3575,6 +3585,7 @@ function HomeDashboard({ onSignOut, now }) {
                               <h2 className="journal-card__title">{task.title}</h2>
                             </div>
 
+                            {task.tab !== 'delegated' && (
                             <div
                               className={[
                                 'journal-timer',
@@ -3671,6 +3682,7 @@ function HomeDashboard({ onSignOut, now }) {
                                 </>
                               )}
                             </div>
+                            )}
                           </div>
                         </div>
 
@@ -3687,6 +3699,12 @@ function HomeDashboard({ onSignOut, now }) {
                             <span className="journal-card__quickmeta-label">Due</span>
                             <span className="journal-card__quickmeta-value">{task.due}</span>
                           </span>
+                          {task.tab === 'delegated' && (
+                            <span className="journal-card__quickmeta-item">
+                              <span className="journal-card__quickmeta-label">Assignee</span>
+                              <span className="journal-card__quickmeta-value">{task.assignee || task.assignedBy}</span>
+                            </span>
+                          )}
                         </div>
 
                         <div
@@ -4668,6 +4686,89 @@ function HomeDashboard({ onSignOut, now }) {
               onClick={confirmClockIn}
             >
               Confirm Clock In
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showClockOutModal && (
+        <div className="clock-modal" role="dialog" aria-modal="true" aria-labelledby="clock-out-title">
+          <button
+            type="button"
+            className="clock-modal__backdrop"
+            aria-label="Close"
+            onClick={() => setShowClockOutModal(false)}
+          />
+          <div className="clock-modal__sheet fade-up">
+            <div className="clock-modal__handle" />
+            <div className="clock-modal__header">
+              <div>
+                <div id="clock-out-title" className="clock-modal__title">Clock Out</div>
+                <div className="clock-modal__subtitle">Confirm your attendance details</div>
+              </div>
+              <button
+                type="button"
+                className="clock-modal__close pressable"
+                onClick={() => setShowClockOutModal(false)}
+                aria-label="Close popup"
+              >
+                <X className="w-4 h-4" strokeWidth={2.3} />
+              </button>
+            </div>
+
+            <div className="clock-modal__field">
+              <label className="clock-modal__label" htmlFor="work-location-out">
+                Work location
+              </label>
+              <div className="clock-modal__input-wrap">
+                <MapPin className="w-4 h-4 clock-modal__input-icon" strokeWidth={2.2} />
+                <select
+                  id="work-location-out"
+                  className="clock-modal__select"
+                  value={workLocation}
+                  onChange={(e) => setWorkLocation(e.target.value)}
+                >
+                  {locations.map((loc) => (
+                    <option key={loc} value={loc}>{loc}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="clock-modal__grid">
+              <div className="clock-modal__field">
+                <label className="clock-modal__label" htmlFor="clock-date-out">Date</label>
+                <input
+                  id="clock-date-out"
+                  type="date"
+                  className="clock-modal__datetime"
+                  value={clockDate}
+                  onChange={(e) => setClockDate(e.target.value)}
+                />
+              </div>
+              <div className="clock-modal__field">
+                <label className="clock-modal__label" htmlFor="clock-time-out">Time</label>
+                <input
+                  id="clock-time-out"
+                  type="time"
+                  className="clock-modal__datetime"
+                  value={clockTime}
+                  onChange={(e) => setClockTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="clock-modal__field">
+              <span className="clock-modal__label">Time worked today</span>
+              <div className="clock-modal__readout tabular-nums">{fmt(elapsed)}</div>
+            </div>
+
+            <button
+              type="button"
+              className="clock-modal__confirm pressable"
+              onClick={confirmClockOut}
+            >
+              Confirm Clock Out
             </button>
           </div>
         </div>
