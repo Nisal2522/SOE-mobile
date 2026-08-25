@@ -1684,6 +1684,8 @@ function HomeDashboard({ onSignOut, now }) {
   const [activeCalendarDoc, setActiveCalendarDoc] = useState(null);
   const [journalTab, setJournalTab] = useState('day');
   const [journalDayOffset, setJournalDayOffset] = useState(0);
+  const [showJournalDatePicker, setShowJournalDatePicker] = useState(false);
+  const [journalDatePickerValue, setJournalDatePickerValue] = useState('');
   const [journalPage, setJournalPage] = useState(1);
   const [journalTasks, setJournalTasks] = useState(JOURNAL_SEED);
   const [runningTaskId, setRunningTaskId] = useState('j3');
@@ -2251,7 +2253,8 @@ function HomeDashboard({ onSignOut, now }) {
     journalPageStart,
     journalPageStart + JOURNAL_PAGE_SIZE,
   );
-  const journalHoursTotal = filteredJournalTasks.reduce((sum, task) => sum + Number(task.workload || 0), 0);
+  const journalSecondsTotal = filteredJournalTasks.reduce((sum, task) => sum + Number(task.seconds || 0), 0);
+  const journalHoursTotal = formatJournalHours(journalSecondsTotal).replace(' hr', '');
 
   const leadQuery = leadSearch.trim().toLowerCase();
   const filteredLeads = leadQuery
@@ -2285,6 +2288,22 @@ function HomeDashboard({ onSignOut, now }) {
   const setJournalTabSafe = (tab) => {
     setJournalTab(tab);
     setJournalPage(1);
+  };
+
+  const openJournalDatePicker = () => {
+    setJournalDatePickerValue(toKeyDate(shiftDate(now, journalDayOffset)));
+    setShowJournalDatePicker(true);
+  };
+
+  const confirmJournalDatePicker = () => {
+    if (journalDatePickerValue) {
+      const picked = new Date(`${journalDatePickerValue}T12:00:00`);
+      const today = new Date(`${toKeyDate(now)}T12:00:00`);
+      const offset = Math.min(0, Math.round((picked - today) / 86400000));
+      setJournalDayOffset(offset);
+      setJournalPage(1);
+    }
+    setShowJournalDatePicker(false);
   };
 
   const openEditTask = (taskId) => {
@@ -3534,10 +3553,7 @@ function HomeDashboard({ onSignOut, now }) {
                   type="button"
                   className="journal-datebar__cal pressable"
                   aria-label="Pick date"
-                  onClick={() => {
-                    setJournalDayOffset(0);
-                    setJournalPage(1);
-                  }}
+                  onClick={openJournalDatePicker}
                 >
                   <Calendar className="w-4 h-4" strokeWidth={2.2} />
                 </button>
@@ -6118,6 +6134,54 @@ function HomeDashboard({ onSignOut, now }) {
                 Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showJournalDatePicker && (
+        <div className="clock-modal" role="dialog" aria-modal="true" aria-labelledby="journal-date-picker-title">
+          <button
+            type="button"
+            className="clock-modal__backdrop"
+            aria-label="Close"
+            onClick={() => setShowJournalDatePicker(false)}
+          />
+          <div className="clock-modal__sheet fade-up">
+            <div className="clock-modal__handle" />
+            <div className="clock-modal__header">
+              <div>
+                <div id="journal-date-picker-title" className="clock-modal__title">Select Date</div>
+                <div className="clock-modal__subtitle">Jump to a day in Day Journal</div>
+              </div>
+              <button
+                type="button"
+                className="clock-modal__close pressable"
+                onClick={() => setShowJournalDatePicker(false)}
+                aria-label="Close popup"
+              >
+                <X className="w-4 h-4" strokeWidth={2.3} />
+              </button>
+            </div>
+
+            <div className="clock-modal__field">
+              <label className="clock-modal__label" htmlFor="journal-date-picker-input">Date</label>
+              <input
+                id="journal-date-picker-input"
+                type="date"
+                className="clock-modal__datetime"
+                value={journalDatePickerValue}
+                max={toKeyDate(now)}
+                onChange={(e) => setJournalDatePickerValue(e.target.value)}
+              />
+            </div>
+
+            <button
+              type="button"
+              className="clock-modal__confirm pressable"
+              onClick={confirmJournalDatePicker}
+            >
+              Go to Date
+            </button>
           </div>
         </div>
       )}
