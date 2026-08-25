@@ -6087,6 +6087,8 @@ function HomeDashboard({ onSignOut, now }) {
                       <option>Referral</option>
                       <option>Social Media</option>
                       <option>Transaction Certificate (TC)</option>
+                      <option>Center of Excellence (COE)</option>
+                      <option>Inter Company</option>
                     </select>
                   </div>
                   <div className="clock-modal__field">
