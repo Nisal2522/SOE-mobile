@@ -2726,12 +2726,6 @@ function HomeDashboard({ onSignOut, now }) {
       department: form.department || 'IT',
       description: form.description || `${form.activity} · ${form.category}`,
       workload: 1,
-      note: [
-        form.applicationReceivedDate && `App Received: ${form.applicationReceivedDate}`,
-        form.arCompletedDate && `AR Completed: ${form.arCompletedDate}`,
-        form.arApprovalRequestedDate && `AR Approval Req: ${form.arApprovalRequestedDate}`,
-        form.propertyRemarks && `Remarks: ${form.propertyRemarks}`,
-      ].filter(Boolean).join(' · '),
       status: 'pending',
       accent: 'orange',
       seconds: 0,
@@ -2842,7 +2836,6 @@ function HomeDashboard({ onSignOut, now }) {
             arCompletedDate: primary.arCompletedDate,
             arApprovalRequestedDate: primary.arApprovalRequestedDate,
             propertyRemarks: primary.propertyRemarks,
-            note: primary.note,
             nextTasks: primary.nextTasks,
             status: complete ? 'done' : task.status,
           }
@@ -3677,40 +3670,53 @@ function HomeDashboard({ onSignOut, now }) {
                           onClick={(e) => e.stopPropagation()}
                           onKeyDown={(e) => e.stopPropagation()}
                         >
-                          <button
-                            type="button"
-                            className="journal-card__action"
-                            onClick={() => openNoteSheet(task.id)}
-                            aria-label={`Add note for ${task.title}`}
-                            title="Note"
-                          >
-                            <StickyNote className="w-3.5 h-3.5" strokeWidth={2.2} />
-                            <span>Note</span>
-                          </button>
-                          <button
-                            type="button"
-                            className="journal-card__action"
-                            onClick={() => openEditTask(task.id)}
-                            aria-label={`Edit ${task.title}`}
-                            title="Edit"
-                          >
-                            <Pencil className="w-3.5 h-3.5" strokeWidth={2.2} />
-                            <span>Edit</span>
-                          </button>
-                          <button
-                            type="button"
-                            className="journal-card__action journal-card__action--delete"
-                            onClick={() => {
-                              if (window.confirm(`Delete "${task.title}"? This can't be undone.`)) {
-                                deleteJournalTask(task.id);
-                              }
-                            }}
-                            aria-label={`Delete ${task.title}`}
-                            title="Delete"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" strokeWidth={2.2} />
-                            <span>Delete</span>
-                          </button>
+                          {(() => {
+                            const hasNote = Boolean(task.note && task.note.trim());
+                            return (
+                              <button
+                                type="button"
+                                className={`journal-card__action journal-card__note-btn ${hasNote ? 'has-note' : ''}`}
+                                onClick={() => openNoteSheet(task.id)}
+                                aria-label={hasNote ? `View note for ${task.title}` : `Add note for ${task.title}`}
+                                title={hasNote ? 'View note' : 'Add note'}
+                              >
+                                <span className="journal-card__note-icon">
+                                  {hasNote ? (
+                                    <StickyNote className="w-3.5 h-3.5" strokeWidth={2.2} />
+                                  ) : (
+                                    <Plus className="w-3.5 h-3.5" strokeWidth={2.4} />
+                                  )}
+                                  {hasNote && <span className="journal-card__note-dot" aria-hidden="true" />}
+                                </span>
+                                <span>{hasNote ? 'Note' : 'Add Note'}</span>
+                              </button>
+                            );
+                          })()}
+
+                          <div className="journal-card__actions-right">
+                            <button
+                              type="button"
+                              className="journal-card__action journal-card__action--icon-only"
+                              onClick={() => openEditTask(task.id)}
+                              aria-label={`Edit ${task.title}`}
+                              title="Edit"
+                            >
+                              <Pencil className="w-3.5 h-3.5" strokeWidth={2.2} />
+                            </button>
+                            <button
+                              type="button"
+                              className="journal-card__action journal-card__action--icon-only journal-card__action--delete"
+                              onClick={() => {
+                                if (window.confirm(`Delete "${task.title}"? This can't be undone.`)) {
+                                  deleteJournalTask(task.id);
+                                }
+                              }}
+                              aria-label={`Delete ${task.title}`}
+                              title="Delete"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" strokeWidth={2.2} />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </article>

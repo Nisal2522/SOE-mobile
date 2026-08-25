@@ -3039,7 +3039,13 @@ button {
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.journal-card__actions-right {
+  display: flex;
+  align-items: center;
   gap: 6px;
 }
 
@@ -3050,12 +3056,14 @@ button {
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
   cursor: pointer;
   font-size: 11px;
   font-weight: 700;
   background: var(--card-soft);
   color: var(--muted);
+  line-height: 1;
 }
 
 .journal-card__action:hover {
@@ -3071,6 +3079,44 @@ button {
 .journal-card__action--delete:hover {
   color: #b3271f;
   background: rgba(224, 63, 51, 0.16);
+}
+
+.journal-card__action--icon-only {
+  width: 28px;
+  padding: 0;
+  justify-content: center;
+}
+
+.journal-card__note-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.journal-card__note-dot {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #3eb2ed;
+  box-shadow: 0 0 0 1.5px var(--card-soft);
+}
+
+.journal-card__note-btn.has-note {
+  color: #1b7fbf;
+  border-color: rgba(62, 178, 237, 0.4);
+  background: rgba(62, 178, 237, 0.14);
+}
+
+.journal-card__note-btn.has-note:hover {
+  background: rgba(62, 178, 237, 0.22);
+}
+
+.journal-card__note-btn.has-note .journal-card__note-dot {
+  background: #1b7fbf;
 }
 
 .journal-view.is-task-modal-open .journal-view__top,
