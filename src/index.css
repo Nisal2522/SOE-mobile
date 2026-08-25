@@ -1397,8 +1397,6 @@ button {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 300px;
-  overflow-y: auto;
 }
 
 .services-pillar {
@@ -1496,14 +1494,6 @@ button {
 
 .services-pillar__details {
   margin-top: 8px;
-  max-height: 180px;
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
-  min-height: 0;
-  padding-right: 2px;
 }
 
 .services-pillar__details::-webkit-scrollbar {
@@ -1626,15 +1616,24 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
   padding: 10px 12px;
   border-radius: 10px;
   background: #ffffff;
+  border: 1.5px solid transparent;
   box-shadow: 0 1px 3px rgba(27, 30, 66, 0.06);
   cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
 }
 
 [data-theme="dark"] .program-row {
   background: #232838;
+}
+
+.program-row:has(input:checked) {
+  background: rgba(62, 178, 237, 0.12);
+  border-color: #3eb2ed;
 }
 
 .program-row__label {
@@ -1644,10 +1643,11 @@ button {
 }
 
 .program-row input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   accent-color: #1b1e42;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .services-panel__footer {
@@ -3166,6 +3166,7 @@ button {
   display: flex;
   align-items: center;
   gap: 6px;
+  margin-left: auto;
 }
 
 .journal-card__action {

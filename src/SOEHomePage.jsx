@@ -2484,6 +2484,7 @@ function HomeDashboard({ onSignOut, now }) {
     };
     setAttendanceHistory((prev) => [outEntry, ...prev]);
     setClockedIn(false);
+    setElapsed(0);
     setShowClockOutModal(false);
   };
 
@@ -3723,7 +3724,7 @@ function HomeDashboard({ onSignOut, now }) {
                           onClick={(e) => e.stopPropagation()}
                           onKeyDown={(e) => e.stopPropagation()}
                         >
-                          {(() => {
+                          {task.tab !== 'delegated' && (() => {
                             const hasNote = Boolean(task.note && task.note.trim());
                             return (
                               <button
