@@ -5275,6 +5275,98 @@ button {
   max-width: 100%;
 }
 
+.performance-view__filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.performance-filter {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  height: 38px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: var(--shadow-float);
+  cursor: pointer;
+  font-family: var(--font);
+  text-align: left;
+}
+
+.performance-filter__icon {
+  flex-shrink: 0;
+  color: #1b8fbf;
+}
+
+.performance-filter__label {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.performance-filter__value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1b8fbf;
+}
+
+.performance-filter select {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+  color: #1b8fbf;
+  cursor: pointer;
+}
+
+.perf-month-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.perf-month-chip {
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: var(--card-soft);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.perf-month-chip.is-selected {
+  background: #1b8fbf;
+  color: #fff;
+}
+
+.perf-month-chip:disabled {
+  color: color-mix(in srgb, var(--muted) 60%, transparent);
+  cursor: not-allowed;
+}
+
+.performance-filter select option {
+  color: #1b1e42;
+}
+
 .performance-view__hero {
   display: grid;
   grid-template-columns: auto 1fr;

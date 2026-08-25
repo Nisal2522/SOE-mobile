@@ -635,6 +635,15 @@ const WFH_RECORDS = [
 
 const JOURNAL_PAGE_SIZE = 10;
 
+const PERF_YEAR_OPTIONS = [2024, 2025, 2026, 2027];
+
+const PERF_MONTH_OPTIONS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+const PERF_DEPARTMENT_OPTIONS = ['IT', 'Sales', 'Operations', 'Certification', 'HR', 'Academy'];
+
 const LEAD_COUNTRY_OPTIONS = [
   'Sri Lanka',
   'India',
@@ -1677,6 +1686,12 @@ function HomeDashboard({ onSignOut, now }) {
   const [showProfile, setShowProfile] = useState(false);
   const [profilePhotoOpen, setProfilePhotoOpen] = useState(false);
   const [perfTab, setPerfTab] = useState('overview');
+  const [perfYear, setPerfYear] = useState(2026);
+  const [perfMonth, setPerfMonth] = useState('August');
+  const [perfDepartment, setPerfDepartment] = useState('IT');
+  const [showPerfPeriodPicker, setShowPerfPeriodPicker] = useState(false);
+  const [perfDraftYear, setPerfDraftYear] = useState(2026);
+  const [perfDraftMonth, setPerfDraftMonth] = useState('August');
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [requestType, setRequestType] = useState('');
   const [expandedWfhRowId, setExpandedWfhRowId] = useState(null);
@@ -1996,6 +2011,26 @@ function HomeDashboard({ onSignOut, now }) {
   const closePerformance = () => {
     setShowPerformance(false);
     setActiveTab('home');
+  };
+
+  const openPerfPeriodPicker = () => {
+    setPerfDraftYear(perfYear);
+    setPerfDraftMonth(perfMonth);
+    setShowPerfPeriodPicker(true);
+  };
+
+  const closePerfPeriodPicker = () => setShowPerfPeriodPicker(false);
+
+  const applyPerfPeriodPicker = () => {
+    setPerfYear(perfDraftYear);
+    setPerfMonth(perfDraftMonth);
+    setShowPerfPeriodPicker(false);
+  };
+
+  const isPerfMonthDisabled = (year, month) => {
+    if (year > now.getFullYear()) return true;
+    if (year < now.getFullYear()) return false;
+    return PERF_MONTH_OPTIONS.indexOf(month) > now.getMonth();
   };
 
   const openProfile = () => {
@@ -3245,6 +3280,32 @@ function HomeDashboard({ onSignOut, now }) {
           </div>
 
           <div className="performance-view__scroll scroll-hide">
+            <div className="performance-view__filters" role="group" aria-label="Performance filters">
+              <button
+                type="button"
+                className="performance-filter"
+                onClick={openPerfPeriodPicker}
+              >
+                <Calendar className="w-3.5 h-3.5 performance-filter__icon" strokeWidth={2.2} />
+                <span className="performance-filter__value">
+                  {perfYear} · {perfMonth} - {perfMonth}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 performance-filter__icon" strokeWidth={2.2} />
+              </button>
+              <label className="performance-filter">
+                <span className="performance-filter__label">Department:</span>
+                <select
+                  aria-label="Department"
+                  value={perfDepartment}
+                  onChange={(e) => setPerfDepartment(e.target.value)}
+                >
+                  {PERF_DEPARTMENT_OPTIONS.map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
             <section className="performance-view__hero">
               <div className="performance-view__hero-gauge">
                 <PerformanceRing
@@ -3265,7 +3326,9 @@ function HomeDashboard({ onSignOut, now }) {
                 <div className={`performance-view__hero-level performance-view__status--${PERFORMANCE_DATA.level}`}>
                   {getPerformanceLevelMeta(PERFORMANCE_DATA.level).label}
                 </div>
-                <div className="performance-view__hero-period">{PERFORMANCE_DATA.period}</div>
+                <div className="performance-view__hero-period">
+                  {perfYear}: {perfMonth} - {perfMonth} · {perfDepartment}
+                </div>
               </div>
               <div className="performance-view__hero-delta">
                 <span className="performance-view__delta-icon" aria-hidden="true">
@@ -6317,6 +6380,76 @@ function HomeDashboard({ onSignOut, now }) {
                 Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showPerfPeriodPicker && (
+        <div className="clock-modal" role="dialog" aria-modal="true" aria-labelledby="perf-period-picker-title">
+          <button
+            type="button"
+            className="clock-modal__backdrop"
+            aria-label="Close"
+            onClick={closePerfPeriodPicker}
+          />
+          <div className="clock-modal__sheet fade-up">
+            <div className="clock-modal__handle" />
+            <div className="clock-modal__header">
+              <div>
+                <div id="perf-period-picker-title" className="clock-modal__title">Select Period</div>
+              </div>
+              <button
+                type="button"
+                className="clock-modal__close pressable"
+                onClick={closePerfPeriodPicker}
+                aria-label="Close popup"
+              >
+                <X className="w-4 h-4" strokeWidth={2.3} />
+              </button>
+            </div>
+
+            <div className="clock-modal__field">
+              <label className="clock-modal__label" htmlFor="perf-picker-year">Year</label>
+              <select
+                id="perf-picker-year"
+                className="add-form__input"
+                value={perfDraftYear}
+                onChange={(e) => setPerfDraftYear(Number(e.target.value))}
+              >
+                {PERF_YEAR_OPTIONS.map((year) => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="clock-modal__field">
+              <span className="clock-modal__label">Month</span>
+              <div className="perf-month-grid" role="group" aria-label="Month">
+                {PERF_MONTH_OPTIONS.map((month) => {
+                  const disabled = isPerfMonthDisabled(perfDraftYear, month);
+                  const selected = perfDraftMonth === month;
+                  return (
+                    <button
+                      key={month}
+                      type="button"
+                      className={`perf-month-chip ${selected ? 'is-selected' : ''}`}
+                      disabled={disabled}
+                      onClick={() => setPerfDraftMonth(month)}
+                    >
+                      {month.slice(0, 3)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="clock-modal__confirm pressable"
+              onClick={applyPerfPeriodPicker}
+            >
+              Apply
+            </button>
           </div>
         </div>
       )}
