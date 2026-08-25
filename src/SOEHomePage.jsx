@@ -635,6 +635,35 @@ const WFH_RECORDS = [
 
 const JOURNAL_PAGE_SIZE = 10;
 
+const LEAD_COUNTRY_OPTIONS = [
+  'Sri Lanka',
+  'India',
+  'Bangladesh',
+  'Maldives',
+  'Pakistan',
+  'Nepal',
+];
+
+const LEAD_ACCOUNT_NAME_OPTIONS = [
+  'Adamjee Lukmanjee Pvt Ltd',
+  'Adampan Organic Farm (Pvt) Ltd',
+  'Adikari Oil Mills (pvt) Ltd',
+  'Aditya Birla Global Trading (India) Private Limited',
+  'A D Printers',
+  'AD Tropical Fruits Sdn Bhd',
+  'ADVANCE PRINTING AND PACKAGING SOLUTIONS INCORPORATED',
+];
+
+const LEAD_OWNER_OPTIONS = [
+  'Udaya Kumari Herath',
+  'Thusharika Priyadarshani',
+  'Jeyendran Nareshani',
+  'Dasun Tharaka',
+  'Sandali Nanayakkara',
+  'Gayan Senanayake',
+  'Chamoth Pasindu',
+];
+
 const TASK_TITLE_OPTIONS = [
   'Bug triage',
   'Client follow-up',
@@ -1697,6 +1726,7 @@ function HomeDashboard({ onSignOut, now }) {
   const [assigneeQuery, setAssigneeQuery] = useState('');
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
+  const [manageOfficeOpen, setManageOfficeOpen] = useState(false);
   const [deleteConfirmTaskId, setDeleteConfirmTaskId] = useState(null);
   const [addForm, setAddForm] = useState({
     title: '',
@@ -1713,7 +1743,7 @@ function HomeDashboard({ onSignOut, now }) {
     accountName: '',
     locatedCountry: '',
     createdBy: 'Nisal Amarasekara',
-    manageOffice: '',
+    manageOffice: [],
     leadOwner: '',
     leadSource: '',
     oppType: '',
@@ -2528,7 +2558,7 @@ function HomeDashboard({ onSignOut, now }) {
       accountName: '',
       locatedCountry: '',
       createdBy: 'Nisal Amarasekara',
-      manageOffice: '',
+      manageOffice: [],
       leadOwner: '',
       leadSource: '',
       oppType: '',
@@ -2715,6 +2745,15 @@ function HomeDashboard({ onSignOut, now }) {
     setAddForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const toggleManageOffice = (country) => {
+    setAddForm((prev) => ({
+      ...prev,
+      manageOffice: prev.manageOffice.includes(country)
+        ? prev.manageOffice.filter((item) => item !== country)
+        : [...prev.manageOffice, country],
+    }));
+  };
+
   const addNextTaskRow = () => {
     setAddForm((prev) => ({ ...prev, nextTasks: [...prev.nextTasks, makeEmptyNextTaskRow()] }));
   };
@@ -2742,6 +2781,7 @@ function HomeDashboard({ onSignOut, now }) {
     setTaskWizardStep(1);
     setAssigneeQuery('');
     setEditingTaskId(null);
+    setManageOfficeOpen(false);
   };
 
   const handleAddTypeChange = (type) => {
@@ -2749,6 +2789,7 @@ function HomeDashboard({ onSignOut, now }) {
     setTaskWizardStep(1);
     setAssigneeQuery('');
     setEditingTaskId(null);
+    setManageOfficeOpen(false);
   };
 
   const addAssigneeFromQuery = () => {
@@ -2805,7 +2846,7 @@ function HomeDashboard({ onSignOut, now }) {
         accountName: addForm.accountName.trim() || 'Untitled Account',
         locatedCountry: addForm.locatedCountry.trim() || '—',
         createdBy: addForm.createdBy.trim() || 'Nisal Amarasekara',
-        manageOffice: addForm.manageOffice || 'Colombo Head Office',
+        manageOffice: addForm.manageOffice,
         leadOwner: addForm.leadOwner.trim() || 'Unassigned',
         services: serviceLabels,
         visitingCardFront: addForm.visitingCardFront,
@@ -4081,7 +4122,11 @@ function HomeDashboard({ onSignOut, now }) {
                           </div>
                           <div>
                             <div className="lead-card__label">Manage office</div>
-                            <div className="lead-card__value">{lead.manageOffice}</div>
+                            <div className="lead-card__value">
+                              {Array.isArray(lead.manageOffice)
+                                ? (lead.manageOffice.join(', ') || '—')
+                                : lead.manageOffice}
+                            </div>
                           </div>
                           <div>
                             <div className="lead-card__label">Lead owner</div>
@@ -5775,27 +5820,41 @@ function HomeDashboard({ onSignOut, now }) {
                     <label className="clock-modal__label" htmlFor="lead-account">
                       Account Name <span className="required-star">*</span>
                     </label>
-                    <input
+                    <select
                       id="lead-account"
                       className="add-form__input"
-                      placeholder="Enter account name"
                       value={addForm.accountName}
                       onChange={(e) => updateAddForm('accountName', e.target.value)}
                       required
-                    />
+                    >
+                      <option value="">Select account name</option>
+                      {LEAD_ACCOUNT_NAME_OPTIONS.map((account) => (
+                        <option key={account}>{account}</option>
+                      ))}
+                      {addForm.accountName && !LEAD_ACCOUNT_NAME_OPTIONS.includes(addForm.accountName) && (
+                        <option value={addForm.accountName}>{addForm.accountName}</option>
+                      )}
+                    </select>
                   </div>
                   <div className="clock-modal__field">
                     <label className="clock-modal__label" htmlFor="lead-country">
                       Located Country <span className="required-star">*</span>
                     </label>
-                    <input
+                    <select
                       id="lead-country"
                       className="add-form__input"
-                      placeholder="Enter country"
                       value={addForm.locatedCountry}
                       onChange={(e) => updateAddForm('locatedCountry', e.target.value)}
                       required
-                    />
+                    >
+                      <option value="">Select country</option>
+                      {LEAD_COUNTRY_OPTIONS.map((country) => (
+                        <option key={country}>{country}</option>
+                      ))}
+                      {addForm.locatedCountry && !LEAD_COUNTRY_OPTIONS.includes(addForm.locatedCountry) && (
+                        <option value={addForm.locatedCountry}>{addForm.locatedCountry}</option>
+                      )}
+                    </select>
                   </div>
                   <div className="clock-modal__field">
                     <label className="clock-modal__label" htmlFor="lead-created-by">
@@ -5810,35 +5869,66 @@ function HomeDashboard({ onSignOut, now }) {
                     />
                   </div>
                   <div className="clock-modal__field">
-                    <label className="clock-modal__label" htmlFor="lead-office">
+                    <label className="clock-modal__label" id="lead-office-label">
                       Manage Offices <span className="required-star">*</span>
                     </label>
-                    <select
-                      id="lead-office"
-                      className="add-form__input"
-                      value={addForm.manageOffice}
-                      onChange={(e) => updateAddForm('manageOffice', e.target.value)}
-                      required
-                    >
-                      <option value="">Select office</option>
-                      <option>Colombo Head Office</option>
-                      <option>Regional Office</option>
-                      <option>Remote — Work From Home</option>
-                      <option>Client Site Visit</option>
-                    </select>
+                    <div className="manage-office-dropdown">
+                      <button
+                        type="button"
+                        className={`manage-office-dropdown__trigger ${manageOfficeOpen ? 'is-open' : ''}`}
+                        aria-haspopup="listbox"
+                        aria-expanded={manageOfficeOpen}
+                        aria-labelledby="lead-office-label"
+                        onClick={() => setManageOfficeOpen((prev) => !prev)}
+                      >
+                        <span className="manage-office-dropdown__value">
+                          {addForm.manageOffice.length > 0
+                            ? addForm.manageOffice.join(', ')
+                            : 'Select office'}
+                        </span>
+                        <ChevronDown
+                          className={`manage-office-dropdown__chevron ${manageOfficeOpen ? 'is-open' : ''}`}
+                          strokeWidth={2.3}
+                        />
+                      </button>
+                      {manageOfficeOpen && (
+                        <div className="manage-office-dropdown__panel" role="listbox" aria-multiselectable="true">
+                          {LEAD_COUNTRY_OPTIONS.map((country) => {
+                            const selected = addForm.manageOffice.includes(country);
+                            return (
+                              <label key={country} className="program-row">
+                                <span className="program-row__label">{country}</span>
+                                <input
+                                  type="checkbox"
+                                  checked={selected}
+                                  onChange={() => toggleManageOffice(country)}
+                                />
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="clock-modal__field">
                     <label className="clock-modal__label" htmlFor="lead-owner">
                       Lead Owner <span className="required-star">*</span>
                     </label>
-                    <input
+                    <select
                       id="lead-owner"
                       className="add-form__input"
-                      placeholder="Enter lead owner"
                       value={addForm.leadOwner}
                       onChange={(e) => updateAddForm('leadOwner', e.target.value)}
                       required
-                    />
+                    >
+                      <option value="">Select lead owner</option>
+                      {LEAD_OWNER_OPTIONS.map((owner) => (
+                        <option key={owner}>{owner}</option>
+                      ))}
+                      {addForm.leadOwner && !LEAD_OWNER_OPTIONS.includes(addForm.leadOwner) && (
+                        <option value={addForm.leadOwner}>{addForm.leadOwner}</option>
+                      )}
+                    </select>
                   </div>
                   {renderSelectServices()}
 
@@ -5930,12 +6020,14 @@ function HomeDashboard({ onSignOut, now }) {
                       required
                     >
                       <option value="">Select lead source</option>
-                      <option>Website</option>
+                      <option>Webinar</option>
+                      <option>Exhibition</option>
+                      <option>Advertisement</option>
+                      <option>Web</option>
+                      <option>Email</option>
                       <option>Referral</option>
-                      <option>Cold Call</option>
-                      <option>Trade Show</option>
-                      <option>Partner</option>
-                      <option>Other</option>
+                      <option>Social Media</option>
+                      <option>Transaction Certificate (TC)</option>
                     </select>
                   </div>
                   <div className="clock-modal__field">
@@ -5950,9 +6042,9 @@ function HomeDashboard({ onSignOut, now }) {
                       required
                     >
                       <option value="">Select type</option>
-                      <option>New Business</option>
-                      <option>Existing Business</option>
-                      <option>Renewal</option>
+                      <option>New Customer</option>
+                      <option>Existing Customer – New Service</option>
+                      <option>Existing Customer – New Program</option>
                     </select>
                   </div>
                   <div className="clock-modal__field">
@@ -5967,11 +6059,12 @@ function HomeDashboard({ onSignOut, now }) {
                       required
                     >
                       <option value="">Select status</option>
+                      <option>Prospecting</option>
                       <option>Qualification</option>
-                      <option>Proposal</option>
+                      <option>Needs Analysis</option>
+                      <option>Quotation</option>
                       <option>Negotiation</option>
-                      <option>Closed Won</option>
-                      <option>Closed Lost</option>
+                      <option>Close</option>
                     </select>
                   </div>
                   <div className="clock-modal__field">
@@ -5990,14 +6083,21 @@ function HomeDashboard({ onSignOut, now }) {
                     <label className="clock-modal__label" htmlFor="opp-owner">
                       Opportunity Owner <span className="required-star">*</span>
                     </label>
-                    <input
+                    <select
                       id="opp-owner"
                       className="add-form__input"
-                      placeholder="Select opportunity owner"
                       value={addForm.opportunityOwner}
                       onChange={(e) => updateAddForm('opportunityOwner', e.target.value)}
                       required
-                    />
+                    >
+                      <option value="">Select opportunity owner</option>
+                      {LEAD_OWNER_OPTIONS.map((owner) => (
+                        <option key={owner}>{owner}</option>
+                      ))}
+                      {addForm.opportunityOwner && !LEAD_OWNER_OPTIONS.includes(addForm.opportunityOwner) && (
+                        <option value={addForm.opportunityOwner}>{addForm.opportunityOwner}</option>
+                      )}
+                    </select>
                   </div>
                   {renderSelectServices()}
                 </>

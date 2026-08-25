@@ -5919,6 +5919,66 @@ select.task-form__control {
   accent-color: #3eb2ed;
 }
 
+.manage-office-dropdown {
+  position: relative;
+}
+
+.manage-office-dropdown__trigger {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 14px;
+  padding: 0 14px;
+  background: var(--card-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.manage-office-dropdown__trigger.is-open {
+  box-shadow: inset 0 0 0 1.5px #3eb2ed;
+}
+
+.manage-office-dropdown__value {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.manage-office-dropdown__chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--muted);
+  transition: transform 0.2s ease;
+}
+
+.manage-office-dropdown__chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.manage-office-dropdown__panel {
+  margin-top: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--card-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.manage-office-dropdown__panel .program-row {
+  box-shadow: none;
+}
+
 .task-form__with-action {
   display: flex;
   align-items: center;
