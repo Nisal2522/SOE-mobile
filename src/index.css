@@ -6867,3 +6867,132 @@ select.task-form__control {
     transform: translateY(0);
   }
 }
+
+/* Searchable picker (Client / Account Name long-list dropdowns) */
+.search-picker-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.search-picker-trigger__placeholder {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.search-picker-trigger__chevron {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.search-picker__sheet {
+  max-height: 80%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.search-picker__input-wrap {
+  position: relative;
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+
+.search-picker__input-icon {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.search-picker__input {
+  width: 100%;
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  padding: 0 40px;
+  background: var(--card-soft);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.search-picker__input:focus {
+  box-shadow: inset 0 0 0 1.5px #3eb2ed;
+}
+
+.search-picker__clear {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.search-picker__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.search-picker__row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.search-picker__row:hover {
+  background: var(--card-soft);
+}
+
+.search-picker__row.is-selected {
+  background: color-mix(in srgb, #3eb2ed 14%, var(--card-soft));
+  color: #1b8fbf;
+  font-weight: 700;
+}
+
+.search-picker__row.is-selected svg {
+  color: #1b8fbf;
+  flex-shrink: 0;
+}
+
+.search-picker__empty {
+  padding: 32px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}

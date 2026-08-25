@@ -1763,6 +1763,8 @@ function HomeDashboard({ onSignOut, now }) {
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
   const [manageOfficeOpen, setManageOfficeOpen] = useState(false);
+  const [searchPicker, setSearchPicker] = useState(null);
+  const [searchPickerQuery, setSearchPickerQuery] = useState('');
   const [deleteConfirmTaskId, setDeleteConfirmTaskId] = useState(null);
   const [addForm, setAddForm] = useState({
     title: '',
@@ -2466,6 +2468,10 @@ function HomeDashboard({ onSignOut, now }) {
       assignDate: assignDateValue,
       description: task.description || '',
       dueDate: task.dueDate || '',
+      inquiryType: task.inquiryType || '',
+      activity: task.activity || '',
+      category: task.category || '',
+      taskGroup: task.taskGroup || '',
       applicationReceivedDate: task.applicationReceivedDate || shiftedDate(-10),
       arCompletedDate: task.arCompletedDate || shiftedDate(-3),
       arApprovalRequestedDate: task.arApprovalRequestedDate || shiftedDate(-5),
@@ -2857,6 +2863,21 @@ function HomeDashboard({ onSignOut, now }) {
     }));
   };
 
+  const openSearchPicker = (field, title, options) => {
+    setSearchPicker({ field, title, options });
+    setSearchPickerQuery('');
+  };
+
+  const closeSearchPicker = () => {
+    setSearchPicker(null);
+    setSearchPickerQuery('');
+  };
+
+  const chooseSearchPickerOption = (value) => {
+    updateAddForm(searchPicker.field, value);
+    closeSearchPicker();
+  };
+
   const addNextTaskRow = () => {
     setAddForm((prev) => ({ ...prev, nextTasks: [...prev.nextTasks, makeEmptyNextTaskRow()] }));
   };
@@ -2926,6 +2947,10 @@ function HomeDashboard({ onSignOut, now }) {
       accent: 'orange',
       seconds: 0,
       tab: 'day',
+      inquiryType: form.inquiryType || '',
+      activity: form.activity || '',
+      category: form.category || '',
+      taskGroup: form.taskGroup || '',
       applicationReceivedDate: form.applicationReceivedDate || '',
       arCompletedDate: form.arCompletedDate || '',
       arApprovalRequestedDate: form.arApprovalRequestedDate || '',
@@ -3029,6 +3054,10 @@ function HomeDashboard({ onSignOut, now }) {
             department: primary.department,
             description: primary.description,
             dueDate: primary.dueDate,
+            inquiryType: primary.inquiryType,
+            activity: primary.activity,
+            category: primary.category,
+            taskGroup: primary.taskGroup,
             applicationReceivedDate: primary.applicationReceivedDate,
             arCompletedDate: primary.arCompletedDate,
             arApprovalRequestedDate: primary.arApprovalRequestedDate,
@@ -5293,15 +5322,6 @@ function HomeDashboard({ onSignOut, now }) {
 
                     <div className="wfh-drawer__days-head">
                       <h3 className="wfh-drawer__card-title">Leave schedule</h3>
-                      <button
-                        type="button"
-                        className="leave-drawer__add pressable"
-                        onClick={addLeaveFormRow}
-                        aria-label="Add Leave"
-                        title="Add Leave"
-                      >
-                        <Plus className="w-4 h-4" strokeWidth={2.6} />
-                      </button>
                     </div>
 
                     <div className="wfh-drawer__accordion">
@@ -5405,6 +5425,15 @@ function HomeDashboard({ onSignOut, now }) {
                         );
                       })}
                     </div>
+
+                    <button
+                      type="button"
+                      className="wfh-drawer__add pressable"
+                      onClick={addLeaveFormRow}
+                    >
+                      <Plus className="w-4 h-4" strokeWidth={2.4} />
+                      Add another day
+                    </button>
                   </>
                 ) : null}
               </div>
@@ -5690,21 +5719,17 @@ function HomeDashboard({ onSignOut, now }) {
                     <label className="task-form__label" htmlFor="task-client">
                       Client <span className="required-star">*</span>
                     </label>
-                    <select
+                    <button
+                      type="button"
                       id="task-client"
-                      className="task-form__control"
-                      value={addForm.client}
-                      onChange={(e) => updateAddForm('client', e.target.value)}
-                      required
+                      className="task-form__control search-picker-trigger"
+                      onClick={() => openSearchPicker('client', 'Select Client', COMPANY_NAME_OPTIONS)}
                     >
-                      <option value="">Select client</option>
-                      {COMPANY_NAME_OPTIONS.map((company) => (
-                        <option key={company}>{company}</option>
-                      ))}
-                      {addForm.client && !COMPANY_NAME_OPTIONS.includes(addForm.client) && (
-                        <option value={addForm.client}>{addForm.client}</option>
-                      )}
-                    </select>
+                      <span className={addForm.client ? '' : 'search-picker-trigger__placeholder'}>
+                        {addForm.client || 'Select client'}
+                      </span>
+                      <ChevronDown className="w-4 h-4 search-picker-trigger__chevron" strokeWidth={2.2} />
+                    </button>
                   </div>
 
                   <div className="task-form__row">
@@ -5983,21 +6008,17 @@ function HomeDashboard({ onSignOut, now }) {
                     <label className="clock-modal__label" htmlFor="lead-account">
                       Account Name <span className="required-star">*</span>
                     </label>
-                    <select
+                    <button
+                      type="button"
                       id="lead-account"
-                      className="add-form__input"
-                      value={addForm.accountName}
-                      onChange={(e) => updateAddForm('accountName', e.target.value)}
-                      required
+                      className="add-form__input search-picker-trigger"
+                      onClick={() => openSearchPicker('accountName', 'Select Account Name', LEAD_ACCOUNT_NAME_OPTIONS)}
                     >
-                      <option value="">Select account name</option>
-                      {LEAD_ACCOUNT_NAME_OPTIONS.map((account) => (
-                        <option key={account}>{account}</option>
-                      ))}
-                      {addForm.accountName && !LEAD_ACCOUNT_NAME_OPTIONS.includes(addForm.accountName) && (
-                        <option value={addForm.accountName}>{addForm.accountName}</option>
-                      )}
-                    </select>
+                      <span className={addForm.accountName ? '' : 'search-picker-trigger__placeholder'}>
+                        {addForm.accountName || 'Select account name'}
+                      </span>
+                      <ChevronDown className="w-4 h-4 search-picker-trigger__chevron" strokeWidth={2.2} />
+                    </button>
                   </div>
                   <div className="clock-modal__field">
                     <label className="clock-modal__label" htmlFor="lead-country">
@@ -6162,21 +6183,17 @@ function HomeDashboard({ onSignOut, now }) {
                     <label className="clock-modal__label" htmlFor="opp-account">
                       Account Name <span className="required-star">*</span>
                     </label>
-                    <select
+                    <button
+                      type="button"
                       id="opp-account"
-                      className="add-form__input"
-                      value={addForm.accountName}
-                      onChange={(e) => updateAddForm('accountName', e.target.value)}
-                      required
+                      className="add-form__input search-picker-trigger"
+                      onClick={() => openSearchPicker('accountName', 'Select Account Name', COMPANY_NAME_OPTIONS)}
                     >
-                      <option value="">Select account name</option>
-                      {COMPANY_NAME_OPTIONS.map((company) => (
-                        <option key={company}>{company}</option>
-                      ))}
-                      {addForm.accountName && !COMPANY_NAME_OPTIONS.includes(addForm.accountName) && (
-                        <option value={addForm.accountName}>{addForm.accountName}</option>
-                      )}
-                    </select>
+                      <span className={addForm.accountName ? '' : 'search-picker-trigger__placeholder'}>
+                        {addForm.accountName || 'Select account name'}
+                      </span>
+                      <ChevronDown className="w-4 h-4 search-picker-trigger__chevron" strokeWidth={2.2} />
+                    </button>
                   </div>
                   <div className="clock-modal__field">
                     <label className="clock-modal__label" htmlFor="opp-lead-source">
@@ -6450,6 +6467,82 @@ function HomeDashboard({ onSignOut, now }) {
           </div>
         </div>
       )}
+
+      {searchPicker && (() => {
+        const query = searchPickerQuery.trim().toLowerCase();
+        const filtered = query
+          ? searchPicker.options.filter((opt) => opt.toLowerCase().includes(query))
+          : searchPicker.options;
+        return (
+          <div className="clock-modal" role="dialog" aria-modal="true" aria-labelledby="search-picker-title">
+            <button
+              type="button"
+              className="clock-modal__backdrop"
+              aria-label="Close"
+              onClick={closeSearchPicker}
+            />
+            <div className="clock-modal__sheet search-picker__sheet fade-up">
+              <div className="clock-modal__handle" />
+              <div className="clock-modal__header">
+                <div>
+                  <div id="search-picker-title" className="clock-modal__title">{searchPicker.title}</div>
+                </div>
+                <button
+                  type="button"
+                  className="clock-modal__close pressable"
+                  onClick={closeSearchPicker}
+                  aria-label="Close popup"
+                >
+                  <X className="w-4 h-4" strokeWidth={2.3} />
+                </button>
+              </div>
+
+              <div className="search-picker__input-wrap">
+                <Search className="w-4 h-4 search-picker__input-icon" strokeWidth={2.2} />
+                <input
+                  type="text"
+                  className="search-picker__input"
+                  placeholder="Search..."
+                  value={searchPickerQuery}
+                  onChange={(e) => setSearchPickerQuery(e.target.value)}
+                  autoFocus
+                />
+                {searchPickerQuery && (
+                  <button
+                    type="button"
+                    className="search-picker__clear"
+                    aria-label="Clear search"
+                    onClick={() => setSearchPickerQuery('')}
+                  >
+                    <X className="w-3.5 h-3.5" strokeWidth={2.4} />
+                  </button>
+                )}
+              </div>
+
+              <div className="search-picker__list scroll-hide">
+                {filtered.length === 0 ? (
+                  <div className="search-picker__empty">No matches found</div>
+                ) : (
+                  filtered.map((option) => {
+                    const selected = addForm[searchPicker.field] === option;
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`search-picker__row ${selected ? 'is-selected' : ''}`}
+                        onClick={() => chooseSearchPickerOption(option)}
+                      >
+                        <span>{option}</span>
+                        {selected && <Check className="w-4 h-4" strokeWidth={2.6} />}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {showPerfPeriodPicker && (
         <div className="clock-modal" role="dialog" aria-modal="true" aria-labelledby="perf-period-picker-title">
