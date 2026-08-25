@@ -633,6 +633,23 @@ const WFH_RECORDS = [
 
 const JOURNAL_PAGE_SIZE = 10;
 
+const TASK_TITLE_OPTIONS = [
+  'Bug triage',
+  'Client follow-up',
+  'Course outline',
+  'Documentation',
+  'Email digest',
+  'Meeting',
+  'Priority sort',
+  'Prompt Engineering',
+  'Sample review',
+  'Send COR',
+  'Standup notes',
+  'Timesheet check',
+  'Training prep',
+  'UI polish',
+];
+
 const JOURNAL_SEED = [
   {
     id: 'j1',
@@ -693,7 +710,7 @@ const JOURNAL_SEED = [
     description: 'Call client regarding pending quotation and confirm site visit availability.',
     workload: 0.5,
     note: '',
-    status: 'pending',
+    status: 'new',
     accent: 'green',
     seconds: 1200,
     tab: 'day',
@@ -2463,7 +2480,7 @@ function HomeDashboard({ onSignOut, now }) {
     setTaskWizardStep(1);
     setEditingTaskId(null);
     setAddForm({
-      title: 'Application Review',
+      title: '',
       description: '',
       dueDate: toDateInput(now),
       priority: 'Medium',
@@ -2485,12 +2502,12 @@ function HomeDashboard({ onSignOut, now }) {
       probability: '0',
       opportunityOwner: '',
       assignDate: toDateInput(now),
-      inquiryType: 'INQUIRY',
-      activity: 'Certification',
-      category: 'Textile',
-      client: 'CU Sri Lanka',
-      salesRef: 'SOE V2',
-      taskGroup: 'Contracting',
+      inquiryType: '',
+      activity: '',
+      category: '',
+      client: '',
+      salesRef: '',
+      taskGroup: '',
       assignTo: 'Nisal Amarasekara',
       department: 'IT',
       applicationReceivedDate: '',
@@ -2724,9 +2741,9 @@ function HomeDashboard({ onSignOut, now }) {
       assignedBy: form.assignTo || 'Self',
       due: dueLabel,
       department: form.department || 'IT',
-      description: form.description || `${form.activity} · ${form.category}`,
+      description: form.description || [form.activity, form.category].filter(Boolean).join(' · '),
       workload: 1,
-      status: 'pending',
+      status: 'new',
       accent: 'orange',
       seconds: 0,
       tab: 'day',
@@ -2867,6 +2884,11 @@ function HomeDashboard({ onSignOut, now }) {
     lead: { label: 'Lead', icon: User, title: 'New Lead' },
     opportunity: { label: 'Opportunity', icon: Target, title: 'New Opportunity' },
   };
+
+  const isTaskReadOnly = Boolean(
+    editingTaskId
+    && journalTasks.find((task) => task.id === editingTaskId)?.status === 'done'
+  );
 
   return (
     <PhoneFrame darkMode={darkMode}>
@@ -3524,7 +3546,9 @@ function HomeDashboard({ onSignOut, now }) {
                   return (
                     <article
                       key={task.id}
-                      className={`journal-card journal-card--${task.accent} is-collapsed`}
+                      className={`journal-card journal-card--${
+                        task.status === 'done' ? 'green' : task.status === 'new' ? 'blue' : 'orange'
+                      } is-collapsed`}
                     >
                       <div className="journal-card__rail" />
                       <div className="journal-card__body">
@@ -3536,8 +3560,8 @@ function HomeDashboard({ onSignOut, now }) {
                             >
                               {task.status === 'done' && !running ? (
                                 <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={2.2} />
-                              ) : running || task.status === 'active' ? (
-                                <span className="journal-card__pulse" />
+                              ) : task.status === 'new' && !running ? (
+                                <span className="journal-card__new-dot" />
                               ) : (
                                 <Hourglass className="w-3 h-3" strokeWidth={2.2} />
                               )}
@@ -3698,10 +3722,14 @@ function HomeDashboard({ onSignOut, now }) {
                               type="button"
                               className="journal-card__action journal-card__action--icon-only"
                               onClick={() => openEditTask(task.id)}
-                              aria-label={`Edit ${task.title}`}
-                              title="Edit"
+                              aria-label={task.status === 'done' ? `View ${task.title}` : `Edit ${task.title}`}
+                              title={task.status === 'done' ? 'View' : 'Edit'}
                             >
-                              <Pencil className="w-3.5 h-3.5" strokeWidth={2.2} />
+                              {task.status === 'done' ? (
+                                <Eye className="w-3.5 h-3.5" strokeWidth={2.2} />
+                              ) : (
+                                <Pencil className="w-3.5 h-3.5" strokeWidth={2.2} />
+                              )}
                             </button>
                             <button
                               type="button"
@@ -5174,7 +5202,9 @@ function HomeDashboard({ onSignOut, now }) {
             <div className="clock-modal__header">
               <div>
                 <div id="add-new-title" className="clock-modal__title">
-                  {addType === 'task' ? (editingTaskId ? 'Edit Task' : 'Add New Task') : 'Add New'}
+                  {addType === 'task'
+                    ? (editingTaskId ? (isTaskReadOnly ? 'View Task' : 'Edit Task') : 'Add New Task')
+                    : 'Add New'}
                 </div>
                 <div className="clock-modal__subtitle">
                   {addType === 'task'
@@ -5234,7 +5264,7 @@ function HomeDashboard({ onSignOut, now }) {
                         type="button"
                         className={`task-stepper__node ${isActive ? 'is-active' : ''} ${isDone ? 'is-done' : ''}`}
                         onClick={() => {
-                          if (step.id <= taskWizardStep) setTaskWizardStep(step.id);
+                          if (isTaskReadOnly || step.id <= taskWizardStep) setTaskWizardStep(step.id);
                         }}
                         aria-current={isActive ? 'step' : undefined}
                       >
@@ -5255,7 +5285,7 @@ function HomeDashboard({ onSignOut, now }) {
               )}
 
               {addType === 'task' && taskWizardStep === 1 && (
-                <div className="task-form">
+                <fieldset className="task-form" disabled={isTaskReadOnly}>
                   <div className="task-form__row">
                     <label className="task-form__label" htmlFor="task-assign-date">
                       Assign Date <span className="required-star">*</span>
@@ -5325,6 +5355,7 @@ function HomeDashboard({ onSignOut, now }) {
                       onChange={(e) => updateAddForm('category', e.target.value)}
                       required
                     >
+                      <option value="">Select category</option>
                       <option>Textile</option>
                       <option>Food</option>
                       <option>Agriculture</option>
@@ -5379,6 +5410,7 @@ function HomeDashboard({ onSignOut, now }) {
                       onChange={(e) => updateAddForm('taskGroup', e.target.value)}
                       required
                     >
+                      <option value="">Select task group</option>
                       <option>Contracting</option>
                       <option>Operations</option>
                       <option>Follow-up</option>
@@ -5390,14 +5422,21 @@ function HomeDashboard({ onSignOut, now }) {
                     <label className="task-form__label" htmlFor="task-title">
                       Task <span className="required-star">*</span>
                     </label>
-                    <input
+                    <select
                       id="task-title"
                       className="task-form__control"
-                      placeholder="e.g. Application Review"
                       value={addForm.title}
                       onChange={(e) => updateAddForm('title', e.target.value)}
                       required
-                    />
+                    >
+                      <option value="">Select task</option>
+                      {TASK_TITLE_OPTIONS.map((option) => (
+                        <option key={option}>{option}</option>
+                      ))}
+                      {addForm.title && !TASK_TITLE_OPTIONS.includes(addForm.title) && (
+                        <option value={addForm.title}>{addForm.title}</option>
+                      )}
+                    </select>
                   </div>
 
                   <div className="task-form__row">
@@ -5478,11 +5517,11 @@ function HomeDashboard({ onSignOut, now }) {
                       </button>
                     </div>
                   </div>
-                </div>
+                </fieldset>
               )}
 
               {addType === 'task' && taskWizardStep === 2 && (
-                <div className="task-form">
+                <fieldset className="task-form" disabled={isTaskReadOnly}>
                   <div className="task-form__row">
                     <label className="task-form__label" htmlFor="application-received-date">
                       Application Received Date / Last Follows Up Date{' '}
@@ -5535,11 +5574,11 @@ function HomeDashboard({ onSignOut, now }) {
                       onChange={(e) => updateAddForm('propertyRemarks', e.target.value)}
                     />
                   </div>
-                </div>
+                </fieldset>
               )}
 
               {addType === 'task' && taskWizardStep === 3 && (
-                <div className="task-form">
+                <fieldset className="task-form" disabled={isTaskReadOnly}>
                   <div className="next-task-table" role="table" aria-label="Next tasks">
                     <div className="next-task-table__thead" role="row">
                       <span role="columnheader">Task</span>
@@ -5592,7 +5631,7 @@ function HomeDashboard({ onSignOut, now }) {
                     <Plus className="w-4 h-4" strokeWidth={2.3} />
                     Add Next Task
                   </button>
-                </div>
+                </fieldset>
               )}
 
               {addType === 'lead' && (
@@ -5862,29 +5901,41 @@ function HomeDashboard({ onSignOut, now }) {
 
             {addType === 'task' ? (
               <div className="task-wizard__footer">
-                <button
-                  type="button"
-                  className="task-wizard__update pressable"
-                  onClick={() => submitAddForm({ complete: false })}
-                >
-                  Update Task without complete
-                </button>
-                {taskWizardStep === 3 ? (
-                  <button
-                    type="button"
-                    className="task-wizard__complete pressable"
-                    onClick={() => submitAddForm({ complete: true })}
-                  >
-                    Complete Task
-                  </button>
-                ) : (
+                {isTaskReadOnly ? (
                   <button
                     type="button"
                     className="task-wizard__next pressable"
-                    onClick={goTaskWizardNext}
+                    onClick={closeAddModal}
                   >
-                    Next
+                    Close
                   </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="task-wizard__update pressable"
+                      onClick={() => submitAddForm({ complete: false })}
+                    >
+                      Update Task without complete
+                    </button>
+                    {taskWizardStep === 3 ? (
+                      <button
+                        type="button"
+                        className="task-wizard__complete pressable"
+                        onClick={() => submitAddForm({ complete: true })}
+                      >
+                        Complete Task
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="task-wizard__next pressable"
+                        onClick={goTaskWizardNext}
+                      >
+                        Next
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             ) : (
