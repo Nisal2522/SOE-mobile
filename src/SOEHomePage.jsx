@@ -53,6 +53,7 @@ import {
   UserPlus,
   Mail,
   StickyNote,
+  AlertCircle,
 } from 'lucide-react';
 import logo from './assets/logo.png';
 import colorLogo from './assets/color.png';
@@ -1692,6 +1693,7 @@ function HomeDashboard({ onSignOut, now }) {
   const [taskWizardStep, setTaskWizardStep] = useState(1);
   const [assigneeQuery, setAssigneeQuery] = useState('');
   const [editingTaskId, setEditingTaskId] = useState(null);
+  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
   const [addForm, setAddForm] = useState({
     title: '',
     description: '',
@@ -2897,7 +2899,9 @@ function HomeDashboard({ onSignOut, now }) {
 
   const isTaskReadOnly = Boolean(
     editingTaskId
-    && journalTasks.find((task) => task.id === editingTaskId)?.status === 'done'
+    && journalTasks.find((task) => (
+      task.id === editingTaskId && (task.status === 'done' || task.tab === 'delegated')
+    ))
   );
 
   return (
@@ -3736,32 +3740,39 @@ function HomeDashboard({ onSignOut, now }) {
                           })()}
 
                           <div className="journal-card__actions-right">
-                            <button
-                              type="button"
-                              className="journal-card__action journal-card__action--icon-only"
-                              onClick={() => openEditTask(task.id)}
-                              aria-label={task.status === 'done' ? `View ${task.title}` : `Edit ${task.title}`}
-                              title={task.status === 'done' ? 'View' : 'Edit'}
-                            >
-                              {task.status === 'done' ? (
-                                <Eye className="w-3.5 h-3.5" strokeWidth={2.2} />
-                              ) : (
-                                <Pencil className="w-3.5 h-3.5" strokeWidth={2.2} />
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              className="journal-card__action journal-card__action--icon-only journal-card__action--delete"
-                              onClick={() => {
-                                if (window.confirm(`Delete "${task.title}"? This can't be undone.`)) {
-                                  deleteJournalTask(task.id);
-                                }
-                              }}
-                              aria-label={`Delete ${task.title}`}
-                              title="Delete"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" strokeWidth={2.2} />
-                            </button>
+                            {(() => {
+                              const isViewOnlyCard = task.status === 'done' || task.tab === 'delegated';
+                              return (
+                                <button
+                                  type="button"
+                                  className="journal-card__action journal-card__action--icon-only"
+                                  onClick={() => openEditTask(task.id)}
+                                  aria-label={isViewOnlyCard ? `View ${task.title}` : `Edit ${task.title}`}
+                                  title={isViewOnlyCard ? 'View' : 'Edit'}
+                                >
+                                  {isViewOnlyCard ? (
+                                    <Eye className="w-3.5 h-3.5" strokeWidth={2.2} />
+                                  ) : (
+                                    <Pencil className="w-3.5 h-3.5" strokeWidth={2.2} />
+                                  )}
+                                </button>
+                              );
+                            })()}
+                            {task.tab !== 'delegated' && (
+                              <button
+                                type="button"
+                                className="journal-card__action journal-card__action--icon-only journal-card__action--delete"
+                                onClick={() => {
+                                  if (window.confirm(`Delete "${task.title}"? This can't be undone.`)) {
+                                    deleteJournalTask(task.id);
+                                  }
+                                }}
+                                aria-label={`Delete ${task.title}`}
+                                title="Delete"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" strokeWidth={2.2} />
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -6023,7 +6034,7 @@ function HomeDashboard({ onSignOut, now }) {
                       <button
                         type="button"
                         className="task-wizard__complete pressable"
-                        onClick={() => submitAddForm({ complete: true })}
+                        onClick={() => setShowCompleteConfirm(true)}
                       >
                         Complete Task
                       </button>
@@ -6048,6 +6059,43 @@ function HomeDashboard({ onSignOut, now }) {
                 Create {addTypeMeta[addType]?.label || 'Record'}
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {showCompleteConfirm && (
+        <div className="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="complete-confirm-title">
+          <button
+            type="button"
+            className="confirm-modal__backdrop"
+            aria-label="Close"
+            onClick={() => setShowCompleteConfirm(false)}
+          />
+          <div className="confirm-modal__sheet fade-up">
+            <div className="confirm-modal__icon">
+              <AlertCircle className="w-10 h-10" strokeWidth={1.8} />
+            </div>
+            <div id="complete-confirm-title" className="confirm-modal__title">Complete Task</div>
+            <p className="confirm-modal__message">Are you sure you want to complete this Task?</p>
+            <div className="confirm-modal__actions">
+              <button
+                type="button"
+                className="confirm-modal__cancel pressable"
+                onClick={() => setShowCompleteConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="confirm-modal__confirm pressable"
+                onClick={() => {
+                  setShowCompleteConfirm(false);
+                  submitAddForm({ complete: true });
+                }}
+              >
+                Confirm
+              </button>
+            </div>
           </div>
         </div>
       )}
