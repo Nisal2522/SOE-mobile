@@ -53,6 +53,7 @@ import {
   Mail,
   StickyNote,
   AlertCircle,
+  Maximize2,
   Camera,
   Check,
 } from 'lucide-react';
@@ -1690,6 +1691,7 @@ function HomeDashboard({ onSignOut, now }) {
   const [perfMonth, setPerfMonth] = useState('August');
   const [perfDepartment, setPerfDepartment] = useState('IT');
   const [showPerfPeriodPicker, setShowPerfPeriodPicker] = useState(false);
+  const [showTrendZoom, setShowTrendZoom] = useState(false);
   const [perfDraftYear, setPerfDraftYear] = useState(2026);
   const [perfDraftMonth, setPerfDraftMonth] = useState('August');
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -1731,7 +1733,7 @@ function HomeDashboard({ onSignOut, now }) {
     Paid: 'paid',
   };
   const wfhReportsTo = 'Thilina Gunathilake';
-  const wfhModeOptions = ['Full Day', 'Half Day'];
+  const wfhModeOptions = ['Full Day', 'Half Day -Afternoon', 'Half Day -Morning'];
   const [calendarMonth, setCalendarMonth] = useState(() => new Date(now.getFullYear(), now.getMonth(), 1));
   const [selectedCalDate, setSelectedCalDate] = useState(() => toKeyDate(now));
   const [activeCalendarDoc, setActiveCalendarDoc] = useState(null);
@@ -3288,7 +3290,7 @@ function HomeDashboard({ onSignOut, now }) {
               >
                 <Calendar className="w-3.5 h-3.5 performance-filter__icon" strokeWidth={2.2} />
                 <span className="performance-filter__value">
-                  {perfYear} · {perfMonth} - {perfMonth}
+                  {perfMonth.slice(0, 3)} {perfYear}
                 </span>
                 <ChevronDown className="w-3.5 h-3.5 performance-filter__icon" strokeWidth={2.2} />
               </button>
@@ -3327,7 +3329,7 @@ function HomeDashboard({ onSignOut, now }) {
                   {getPerformanceLevelMeta(PERFORMANCE_DATA.level).label}
                 </div>
                 <div className="performance-view__hero-period">
-                  {perfYear}: {perfMonth} - {perfMonth} · {perfDepartment}
+                  {perfMonth} {perfYear} · {perfDepartment}
                 </div>
               </div>
               <div className="performance-view__hero-delta">
@@ -3469,9 +3471,17 @@ function HomeDashboard({ onSignOut, now }) {
                     </span>
                   ))}
                 </div>
-                <div className="performance-view__trend-card">
+                <button
+                  type="button"
+                  className="performance-view__trend-card performance-view__trend-card--zoomable pressable"
+                  onClick={() => setShowTrendZoom(true)}
+                  aria-label="Zoom in on performance trends chart"
+                >
                   <PerformanceTrendChart trends={PERFORMANCE_DATA.trends} />
-                </div>
+                  <span className="performance-view__trend-zoom-hint">
+                    <Maximize2 className="w-3.5 h-3.5" strokeWidth={2.2} />
+                  </span>
+                </button>
               </section>
             )}
           </div>
@@ -5162,28 +5172,20 @@ function HomeDashboard({ onSignOut, now }) {
                                 </div>
 
                                 <div className="wfh-drawer__field">
-                                  <span className="wfh-drawer__label">Mode</span>
-                                  <div
-                                    className="wfh-drawer__modes"
-                                    role="group"
-                                    aria-label={`Mode for day ${index + 1}`}
+                                  <label className="wfh-drawer__label" htmlFor={`wfh-mode-${row.id}`}>
+                                    Mode
+                                  </label>
+                                  <select
+                                    id={`wfh-mode-${row.id}`}
+                                    className="wfh-drawer__input leave-drawer__select"
+                                    value={row.mode}
+                                    onChange={(e) => updateWfhFormRow(row.id, 'mode', e.target.value)}
                                   >
-                                    {wfhModeOptions.map((mode) => {
-                                      const selected = row.mode === mode;
-                                      return (
-                                        <button
-                                          key={mode}
-                                          type="button"
-                                          className={`wfh-drawer__mode ${selected ? 'is-selected' : ''}`}
-                                          aria-pressed={selected}
-                                          onMouseDown={(e) => e.preventDefault()}
-                                          onClick={() => updateWfhFormRow(row.id, 'mode', mode)}
-                                        >
-                                          {mode}
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
+                                    <option value="">Select mode</option>
+                                    {wfhModeOptions.map((mode) => (
+                                      <option key={mode} value={mode}>{mode}</option>
+                                    ))}
+                                  </select>
                                 </div>
 
                                 {wfhFormRows.length > 1 && (
@@ -6379,6 +6381,47 @@ function HomeDashboard({ onSignOut, now }) {
               >
                 Delete
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showTrendZoom && (
+        <div className="clock-modal" role="dialog" aria-modal="true" aria-labelledby="trend-zoom-title">
+          <button
+            type="button"
+            className="clock-modal__backdrop"
+            aria-label="Close"
+            onClick={() => setShowTrendZoom(false)}
+          />
+          <div className="clock-modal__sheet trend-zoom__sheet fade-up">
+            <div className="clock-modal__handle" />
+            <div className="clock-modal__header">
+              <div>
+                <div id="trend-zoom-title" className="clock-modal__title">Performance Trends</div>
+                <div className="clock-modal__subtitle">Pinch or scroll to explore</div>
+              </div>
+              <button
+                type="button"
+                className="clock-modal__close pressable"
+                onClick={() => setShowTrendZoom(false)}
+                aria-label="Close popup"
+              >
+                <X className="w-4 h-4" strokeWidth={2.3} />
+              </button>
+            </div>
+
+            <div className="performance-view__legend" aria-label="Trend levels">
+              {PERFORMANCE_LEVELS.map((level) => (
+                <span key={level.key} className="performance-view__legend-item">
+                  <span className="performance-view__legend-dot" style={{ background: level.color }} />
+                  {level.label}
+                </span>
+              ))}
+            </div>
+
+            <div className="trend-zoom__chart">
+              <PerformanceTrendChart trends={PERFORMANCE_DATA.trends} />
             </div>
           </div>
         </div>

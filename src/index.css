@@ -44,6 +44,14 @@
   box-sizing: border-box;
 }
 
+/* Native <option> popups render with a browser-controlled (usually light)
+   background regardless of app theme, so option text must stay dark and
+   explicit — otherwise dark-mode <select> text color makes it unreadable. */
+select option {
+  color: #1b1e42;
+  background: #ffffff;
+}
+
 html,
 body,
 #root {
@@ -5684,6 +5692,50 @@ button {
   padding: 10px 6px 6px;
   box-shadow: 0 8px 20px rgba(27, 30, 66, 0.05);
   overflow: hidden;
+}
+
+.performance-view__trend-card--zoomable {
+  position: relative;
+  width: 100%;
+  display: block;
+  cursor: pointer;
+}
+
+.performance-view__trend-zoom-hint {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ink) 6%, var(--card));
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trend-zoom__sheet {
+  max-height: 88%;
+  display: flex;
+  flex-direction: column;
+}
+
+.trend-zoom__chart {
+  margin-top: 12px;
+  border-radius: 16px;
+  background: var(--card-soft);
+  padding: 10px 6px;
+}
+
+.trend-zoom__chart .perf-trend__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.trend-zoom__chart .perf-trend__svg {
+  min-width: 680px;
+  min-height: 340px;
 }
 
 .perf-trend__scroll {
