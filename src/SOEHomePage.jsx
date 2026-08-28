@@ -1822,7 +1822,7 @@ function HomeDashboard({ onSignOut, now }) {
   const [clockTime, setClockTime] = useState('');
   const [darkMode, setDarkMode] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
-  const [expandedServices, setExpandedServices] = useState([]);
+  const [expandedServices, setExpandedServices] = useState(null);
   const [expandedPillars, setExpandedPillars] = useState([]);
   const [attendanceHistory, setAttendanceHistory] = useState(() => buildJulyAttendanceHistory());
 
@@ -2693,7 +2693,7 @@ function HomeDashboard({ onSignOut, now }) {
     });
     setAssigneeQuery('');
     setSelectedServices([]);
-    setExpandedServices([]);
+    setExpandedServices(null);
     setExpandedPillars([]);
     setShowAddModal(true);
   };
@@ -2707,11 +2707,7 @@ function HomeDashboard({ onSignOut, now }) {
   };
 
   const toggleServiceExpand = (serviceKey) => {
-    setExpandedServices((prev) => (
-      prev.includes(serviceKey)
-        ? prev.filter((key) => key !== serviceKey)
-        : [...prev, serviceKey]
-    ));
+    setExpandedServices((prev) => (prev === serviceKey ? null : serviceKey));
   };
 
   const toggleProgram = (serviceKey, program) => {
@@ -2778,7 +2774,7 @@ function HomeDashboard({ onSignOut, now }) {
                   ) : (
                     <div className="services-pillar__list">
                       {pillar.services.map((service) => {
-                        const expanded = expandedServices.includes(service.key);
+                        const expanded = expandedServices === service.key;
                         const selectedCount = service.programs.filter((program) => (
                           selectedServices.includes(`${service.key}::${program}`)
                         )).length;
